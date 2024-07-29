@@ -1,6 +1,6 @@
-# [PROJECT TITLE]
+# StreamWave AggregateRoot
 
-[PROJECT DESCRIPTION]
+An aggregate root designed for a streaming environment, addressing the dual write problem by decoupling the domain model from the event stream.
 
 ![Alt text](/assets/logo.png "logo")
 
@@ -22,13 +22,13 @@
 To install the package, use the following command in your .NET Core project:
 
 ```bash
-dotnet add package [projectname]
+dotnet add package StreamWave
 ```
 
 Alternatively, you can add it manually to your `.csproj` file:
 
 ```xml
-<PackageReference Include="[projectname]" Version="0.1.0" />
+<PackageReference Include="StreamWave" Version="0.1.0" />
 ```
 
 ## Usage
@@ -37,13 +37,21 @@ Here are some basic examples of how to use the library:
 
 ### Setup
 
-First, initialize the `SonarCloudClient` with your SonarCloud token:
+Add the aggregate to the service collection
 
 ```csharp
-using [ProjectName];
+using StreamWave;
+using StreamWave.EntityFramework;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddAggregate<TestState, Guid>(() => new TestState() {  Id = Guid.NewGuid() })
+            .WithEntityFramework<TestContext, TestState, Guid>()
+            .WithApplier<TestEvent>((s, e) =>
+            {
+                s.Test = e.Field;
+                return s;
+            });
 
 ```
 
@@ -51,7 +59,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 ```csharp
 
-var test = new string();
+public Task HandleAsync(IAggregate<TestState, Guid> aggregate, Guid id)
+{
+    aggregate.LoadAsync(id);
+
+    aggregate.Apply(new TestEvent("Update"));
+}
+
 
 ```
 
