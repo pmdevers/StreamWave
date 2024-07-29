@@ -2,23 +2,21 @@
 
 namespace StreamWave;
 
-public class EventStream : IEventStream
+public static class EventStream
 {
-    private readonly Event[] _events;
+    public static IEventStream<TId> Create<TId>(TId streamId, Event[]? events = null)
+        => new EventStream<TId>(streamId, events);
+}
+
+public class EventStream<TId>(TId streamId, Event[]? events = null) : IEventStream<TId>
+{
+    private readonly Event[] _events = events ?? [];
     private readonly List<Event> _uncommitted = [];
 
-    private EventStream(Guid streamId, Event[]? events = null)
-    {
-        Id = streamId;
-        _events = events ?? [];
-    }
+    public TId Id { get; } = streamId;
 
-    public static IEventStream Create()
-        => Create(StreamId.Guid());
-    public static IEventStream Create(Guid streamId, Event[]? events = null)
-        => new EventStream(streamId, events);
-
-    public Guid Id { get; }
+    public bool HasUncommittedChanges
+       => _uncommitted.Count > 0;
 
     public int Version
         => _events.Length;
@@ -51,6 +49,6 @@ public class EventStream : IEventStream
     public Event[] GetUncommittedEvents()
         => [.. _uncommitted];
 
-    public IEventStream Commit()
-        => Create(Id, [.. _events, .. _uncommitted]);
+    public IEventStream<TId> Commit()
+        => EventStream.Create(Id, [.. _events, .. _uncommitted]);
 }

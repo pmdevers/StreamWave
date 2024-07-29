@@ -24,9 +24,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{4D1F50
 		assets\logo.png = assets\logo.png
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamWave", "src\StreamWave\StreamWave.csproj", "{93A7C744-E61D-49EB-9203-7CB6A7047462}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StreamWave", "src\StreamWave\StreamWave.csproj", "{93A7C744-E61D-49EB-9203-7CB6A7047462}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamWave.Tests", "test\StreamWave.Tests\StreamWave.Tests.csproj", "{AB3DC0EB-4588-4454-A546-01DCF5E8BDFF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StreamWave.Tests", "test\StreamWave.Tests\StreamWave.Tests.csproj", "{AB3DC0EB-4588-4454-A546-01DCF5E8BDFF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamWave.EntityFramework", "src\StreamWave.EntityFramework\StreamWave.EntityFramework.csproj", "{6B4A7731-194B-414E-9C1C-42F3B27B1237}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamWave.EntityFramework.Tests", "test\StreamWave.EntityFramework.Tests\StreamWave.EntityFramework.Tests.csproj", "{56ED3858-E15A-4F62-A69E-034442BC0899}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,6 +46,14 @@ Global
 		{AB3DC0EB-4588-4454-A546-01DCF5E8BDFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AB3DC0EB-4588-4454-A546-01DCF5E8BDFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AB3DC0EB-4588-4454-A546-01DCF5E8BDFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B4A7731-194B-414E-9C1C-42F3B27B1237}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B4A7731-194B-414E-9C1C-42F3B27B1237}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B4A7731-194B-414E-9C1C-42F3B27B1237}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B4A7731-194B-414E-9C1C-42F3B27B1237}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56ED3858-E15A-4F62-A69E-034442BC0899}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56ED3858-E15A-4F62-A69E-034442BC0899}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56ED3858-E15A-4F62-A69E-034442BC0899}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56ED3858-E15A-4F62-A69E-034442BC0899}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -51,6 +63,8 @@ Global
 		{0CCCC7F3-A522-4535-8D5A-1E53815936D3} = {9320CC2F-6BB6-4B29-B625-EB427EE87891}
 		{93A7C744-E61D-49EB-9203-7CB6A7047462} = {898CC489-C84A-49BD-9D77-3CEA1F6A7180}
 		{AB3DC0EB-4588-4454-A546-01DCF5E8BDFF} = {9320CC2F-6BB6-4B29-B625-EB427EE87891}
+		{6B4A7731-194B-414E-9C1C-42F3B27B1237} = {898CC489-C84A-49BD-9D77-3CEA1F6A7180}
+		{56ED3858-E15A-4F62-A69E-034442BC0899} = {9320CC2F-6BB6-4B29-B625-EB427EE87891}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {49DE7562-1920-49AD-A220-E10302CEC632}

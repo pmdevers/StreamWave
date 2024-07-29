@@ -12,10 +12,10 @@ internal static class AggregateBuilderDefaults
                          .Select(x => new ValidationMessage(x.Message))
                          .ToArray();
 
-    public static LoadEventStreamDelegate DefaultLoader(Event[]? events = null)
+    public static LoadEventStreamDelegate<TId> DefaultLoader<TId>(Event[]? events = null)
         => (streamId) => Task.FromResult(events is not null ? EventStream.Create(streamId, events) : null);
 
-    public static SaveAggregateDelegate<TState> DefaultSaver<TState>()
+    public static SaveAggregateDelegate<TState, TId> DefaultSaver<TState, TId>()
         => (aggregate) => Task.FromResult(EventStream.Create(aggregate.Stream.Id, aggregate.Stream.GetUncommittedEvents()));
 }
 public record ValidationRule<TState>(Func<TState, bool> Rule, string Message);

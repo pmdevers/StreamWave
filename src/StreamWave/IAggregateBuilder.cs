@@ -1,13 +1,13 @@
 ﻿namespace StreamWave;
 
-public interface IAggregateBuilder<TState>
+public interface IAggregateBuilder<TState, TId>
 {
-    IAggregateBuilder<TState> WithEvents(Event[] events);
-    IAggregateBuilder<TState> WithLoader(Func<IServiceProvider, LoadEventStreamDelegate> loader);
-    IAggregateBuilder<TState> WithSaver(Func<IServiceProvider, SaveAggregateDelegate<TState>> saver);
-    IAggregateBuilder<TState> WithApplier(Func<IServiceProvider, ApplyEventDelegate<TState>> applier);
-    IAggregateBuilder<TState> WithApplier<TEvent>(Func<TState, TEvent, TState> applier)
+    IAggregateBuilder<TState, TId> WithEvents(Event[] events);
+    IAggregateBuilder<TState, TId> WithLoader(Func<IServiceProvider, LoadEventStreamDelegate<TId>> loader);
+    IAggregateBuilder<TState, TId> WithSaver(Func<IServiceProvider, SaveAggregateDelegate<TState, TId>> saver);
+    IAggregateBuilder<TState, TId> WithApplier(Func<IServiceProvider, ApplyEventDelegate<TState>> applier);
+    IAggregateBuilder<TState, TId> WithApplier<TEvent>(Func<TState, TEvent, TState> applier)
         where TEvent : Event;
-    IAggregateBuilder<TState> WithValidator(Func<IServiceProvider, ValidateStateDelegate<TState>> validator);
-    IAggregateBuilder<TState> WithValidator(Func<TState, bool> rule, string message);
+    IAggregateBuilder<TState, TId> WithValidator(Func<IServiceProvider, ValidateStateDelegate<TState>> validator);
+    IAggregateBuilder<TState, TId> WithValidator(Func<TState, bool> rule, string message);
 }

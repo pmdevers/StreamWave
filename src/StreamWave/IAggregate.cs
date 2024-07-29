@@ -1,12 +1,12 @@
 ﻿namespace StreamWave;
 
-public interface IAggregate<out TState>
+public interface IAggregate<out TState, TId>
 {
     TState State { get; }
-    IEventStream Stream { get; }
+    IEventStream<TId> Stream { get; }
     ValidationMessage[] Messages { get; }
     bool IsValid { get; }
     void Apply(Event e);
-    Task LoadAsync(Guid id);
+    Task LoadAsync(TId id);
     Task SaveAsync();
 }

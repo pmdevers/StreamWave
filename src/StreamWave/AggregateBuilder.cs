@@ -1,76 +1,68 @@
 ﻿namespace StreamWave;
 
-public static class AggregateBuilder
-{
-    public static AggregateBuilder<TState> Create<TState>(TState initialState)
-        => Create(() => initialState);
-
-    public static AggregateBuilder<TState> Create<TState>(CreateStateDelegate<TState> creator)
-        => new(creator);
-}
-
-public class AggregateBuilder<TState> : IAggregateBuilder<TState>
+public class AggregateBuilder<TState, TId> : IAggregateBuilder<TState, TId>
+    where TState : IAggregateState<TId>
 {
     private readonly Dictionary<Type, ApplyEventDelegate<TState>> _events = [];
     private readonly List<ValidationRule<TState>> _rules = [];
-    private readonly CreateStateDelegate<TState> _creator;
+    private readonly CreateStateDelegate<TState, TId> _creator;
 
     private Func<IServiceProvider, ValidateStateDelegate<TState>>? _validator;
     private Func<IServiceProvider, ApplyEventDelegate<TState>>? _applier = null;
-    private Func<IServiceProvider, LoadEventStreamDelegate>? _loader = null;
-    private Func<IServiceProvider, SaveAggregateDelegate<TState>>? _saver = null;
+    private Func<IServiceProvider, LoadEventStreamDelegate<TId>>? _loader = null;
+    private Func<IServiceProvider, SaveAggregateDelegate<TState, TId>>? _saver = null;
 
-    internal AggregateBuilder(CreateStateDelegate<TState> creator)
+    internal AggregateBuilder(CreateStateDelegate<TState, TId> creator)
     {
         _creator = creator;
     }
-    public IAggregateBuilder<TState> WithEvents(Event[] events)
+    public IAggregateBuilder<TState, TId> WithEvents(Event[] events)
     {
-        _loader = (_) => AggregateBuilderDefaults.DefaultLoader(events);
+        _loader = (_) => AggregateBuilderDefaults.DefaultLoader<TId>(events);
         return this;
     }
 
-    public IAggregate<TState> Build(IServiceProvider serviceProvider)
+    public IAggregate<TState, TId> Build(IServiceProvider serviceProvider)
     {
         var applier = _applier?.Invoke(serviceProvider) ?? AggregateBuilderDefaults.DefaultApplier(_events);
         var validator = _validator?.Invoke(serviceProvider) ?? AggregateBuilderDefaults.DefaultValidator(_rules);
-        var loader = _loader?.Invoke(serviceProvider) ?? AggregateBuilderDefaults.DefaultLoader();
-        var saver = _saver?.Invoke(serviceProvider) ?? AggregateBuilderDefaults.DefaultSaver<TState>();
+        var loader = _loader?.Invoke(serviceProvider) ?? AggregateBuilderDefaults.DefaultLoader<TId>();
+        var saver = _saver?.Invoke(serviceProvider) ?? AggregateBuilderDefaults.DefaultSaver<TState, TId>();
 
-        return new Aggregate<TState>(_creator, applier, validator, loader, saver);
+        return new Aggregate<TState, TId>(_creator, applier, validator, loader, saver);
     }
 
-    public IAggregateBuilder<TState> WithSaver(Func<IServiceProvider, SaveAggregateDelegate<TState>> saver)
+    public IAggregateBuilder<TState, TId> WithSaver(Func<IServiceProvider, SaveAggregateDelegate<TState, TId>> saver)
     {
         _saver = saver;
         return this;
     }
 
-    public IAggregateBuilder<TState> WithLoader(Func<IServiceProvider, LoadEventStreamDelegate> loader)
+    public IAggregateBuilder<TState, TId> WithLoader(Func<IServiceProvider, LoadEventStreamDelegate<TId>> loader)
     {
         _loader = loader;
         return this;
     }
 
-    public IAggregateBuilder<TState> WithValidator(Func<IServiceProvider, ValidateStateDelegate<TState>> validator)
+    public IAggregateBuilder<TState, TId> WithValidator(Func<IServiceProvider, ValidateStateDelegate<TState>> validator)
     {
         _validator = validator;
         return this;
     }
 
-    public IAggregateBuilder<TState> WithValidator(Func<TState, bool> rule, string message)
+    public IAggregateBuilder<TState, TId> WithValidator(Func<TState, bool> rule, string message)
     {
         _rules.Add(new(rule, message));
         return this;
     }
 
-    public IAggregateBuilder<TState> WithApplier(Func<IServiceProvider, ApplyEventDelegate<TState>> applier)
+    public IAggregateBuilder<TState, TId> WithApplier(Func<IServiceProvider, ApplyEventDelegate<TState>> applier)
     {
         _applier = applier;
         return this;
     }
 
-    public IAggregateBuilder<TState> WithApplier<TEvent>(Func<TState, TEvent, TState> applier) where TEvent : Event
+    public IAggregateBuilder<TState, TId> WithApplier<TEvent>(Func<TState, TEvent, TState> applier) where TEvent : Event
     {
         _events.Add(typeof(TEvent), (state, e) => applier(state, (TEvent)e));
         return this;

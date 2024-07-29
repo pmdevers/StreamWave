@@ -2,20 +2,20 @@
 
 namespace StreamWave;
 
-public interface IStreamManager
+public interface IStreamManager<TId>
 {
-    Task<IEventStream?> LoadAsync(Guid streamId);
-    Task<IEventStream> SaveAsync(IEventStream stream);
+    Task<IEventStream<TId>?> LoadAsync(TId streamId);
+    Task<IEventStream<TId>> SaveAsync(IEventStream<TId> stream);
 }
 
-public class StreamManager(Guid streamId, Event[] events) : IStreamManager
+public class StreamManager<TId>(TId streamId, Event[] events) : IStreamManager<TId>
 {
-    private readonly Guid _streamId = streamId;
+    private readonly TId _streamId = streamId;
     private readonly Event[] _events = events;
 
-    public async Task<IEventStream?> LoadAsync(Guid streamId)
+    public async Task<IEventStream<TId>?> LoadAsync(TId streamId)
     {
-        if (streamId != _streamId)
+        if (streamId?.Equals(_streamId) == true)
             return null;
 
         await Task.CompletedTask;
@@ -23,7 +23,7 @@ public class StreamManager(Guid streamId, Event[] events) : IStreamManager
         return EventStream.Create(streamId, _events);
     }
 
-    public async Task<IEventStream> SaveAsync(IEventStream stream)
+    public async Task<IEventStream<TId>> SaveAsync(IEventStream<TId> stream)
     {
         await Task.CompletedTask;
         return EventStream.Create(stream.Id, stream.GetUncommittedEvents());

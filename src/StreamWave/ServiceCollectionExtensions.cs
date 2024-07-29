@@ -3,11 +3,17 @@
 namespace StreamWave;
 public static class ServiceCollectionExtensions
 {
-    public static IAggregateBuilder<TState> AddAggregate<TState>(this IServiceCollection services, TState initialState)
+    public static IAggregateBuilder<TState, TId> AddAggregate<TState, TId>(this IServiceCollection services, CreateStateDelegate<TState, TId> initialState)
+        where TState : IAggregateState<TId>
     {
-        var builder = AggregateBuilder.Create(initialState);
+        var builder = new AggregateBuilder<TState, TId>(initialState);
         services.AddSingleton(builder);
-        services.AddScoped(x => x.GetRequiredService<AggregateBuilder<TState>>().Build(x));
+        services.AddTransient(x => x.GetRequiredService<AggregateBuilder<TState, TId>>().Build(x));
         return builder;
     }
+}
+
+public interface IAggregateState<TId>
+{
+    TId Id { get; set; }
 }
