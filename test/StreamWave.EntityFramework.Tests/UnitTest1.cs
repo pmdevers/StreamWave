@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using StreamWave.Extensions;
+using System.Text.Json;
 
 namespace StreamWave.EntityFramework.Tests;
 
@@ -10,19 +12,23 @@ public class StorageRegistration
     {
         var services = new ServiceCollection();
         services.AddDbContext<TestContext>(x => x.UseInMemoryDatabase("test"), contextLifetime: ServiceLifetime.Transient);
+        services.AddSingleton(JsonSerializerOptions.Default);
+        services.AddScoped<IEventSerializer, DefaultSerializer>();
 
         services.AddAggregate<TestState, Guid>(() => new())
             .WithLoader((s) =>
                   (id) =>
                   {
                       var context = s.GetRequiredService<TestContext>();
-                      return AggregateStore<TestState, Guid>.LoadAsync(context, id);
+                      var serializer = s.GetRequiredService<IEventSerializer>();
+                      return new AggregateStore<TestState, Guid>(context, serializer).LoadAsync(id);
                   }
             )
             .WithSaver((s) =>
-                (a) => { 
+                (a) => {
                     var context = s.GetRequiredService<TestContext>();
-                    return AggregateStore<TestState, Guid>.SaveAsync(context, a);
+                    var serializer = s.GetRequiredService<IEventSerializer>();
+                    return new AggregateStore<TestState, Guid>(context, serializer).SaveAsync(a);
                 })
             .WithApplier<TestEvent>((s, e) =>
             {
@@ -50,6 +56,9 @@ public class StorageRegistration
     {
         var services = new ServiceCollection();
         services.AddDbContext<TestContext>(x => x.UseInMemoryDatabase("test"), contextLifetime: ServiceLifetime.Transient);
+
+        services.AddSingleton(JsonSerializerOptions.Default);
+        services.AddScoped<IEventSerializer, DefaultSerializer>();
 
         services.AddAggregate<TestState, Guid>(() => new TestState() {  Id = Guid.NewGuid() })
             .WithEntityFramework<TestContext, TestState, Guid>()

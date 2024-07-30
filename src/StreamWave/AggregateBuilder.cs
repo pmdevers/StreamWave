@@ -1,4 +1,6 @@
-﻿namespace StreamWave;
+﻿using StreamWave.Extensions;
+
+namespace StreamWave;
 
 public class AggregateBuilder<TState, TId> : IAggregateBuilder<TState, TId>
     where TState : IAggregateState<TId>

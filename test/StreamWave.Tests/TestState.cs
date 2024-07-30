@@ -1,4 +1,6 @@
-﻿namespace StreamWave.Tests;
+﻿using StreamWave.Extensions;
+
+namespace StreamWave.Tests;
 
 public class TestState : IAggregateState<Guid>
 {

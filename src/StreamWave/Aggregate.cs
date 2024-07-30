@@ -1,4 +1,6 @@
-﻿namespace StreamWave;
+﻿using StreamWave.Extensions;
+
+namespace StreamWave;
 
 public delegate TState CreateStateDelegate<out TState, in TId>() 
     where TState : IAggregateState<TId>;

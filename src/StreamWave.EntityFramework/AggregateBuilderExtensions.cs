@@ -13,13 +13,15 @@ public static class AggregateBuilderExtensions
                   (id) =>
                   {
                       var context = s.GetRequiredService<TContext>();
-                      return AggregateStore<TState, TKey>.LoadAsync(context, id);
+                      var serializer = s.GetRequiredService<IEventSerializer>();
+                      return new AggregateStore<TState, TKey>(context, serializer).LoadAsync(id);
                   }
             )
             .WithSaver((s) =>
                 (a) => {
                     var context = s.GetRequiredService<TContext>();
-                    return AggregateStore<TState, TKey>.SaveAsync(context, a);
+                    var serializer = s.GetRequiredService<IEventSerializer>();
+                    return new AggregateStore<TState, TKey>(context, serializer).SaveAsync(a);
                 });
         return builder;
     }
