@@ -1,5 +1,12 @@
 # StreamWave AggregateRoot
 
+![Github Release](https://img.shields.io/github/v/release/pmdevers/streamwave)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/pmdevers/StreamWave/.github%2Fworkflows%2Fbuild-publish.yml)
+![GitHub License](https://img.shields.io/github/license/pmdevers/streamwave)
+![Github Issues Open](https://img.shields.io/github/issues/pmdevers/streamwave)
+![Github Pull Request Open](https://img.shields.io/github/issues-pr/pmdevers/streamwave)
+
+
 An aggregate root designed for a streaming environment, addressing the dual write problem by decoupling the domain model from the event stream.
 
 ![Alt text](/assets/logo.png "logo")
