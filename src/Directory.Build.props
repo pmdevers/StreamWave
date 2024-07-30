@@ -30,7 +30,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/$(CompanyName)/$(ProjectName)</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	  <GenerateDocumentationFile>false</GenerateDocumentationFile>
+	  <GenerateDocumentationFile>true</GenerateDocumentationFile>
  
   </PropertyGroup>
 

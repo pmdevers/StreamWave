@@ -18,4 +18,13 @@ internal static class AggregateBuilderDefaults
     public static SaveAggregateDelegate<TState, TId> DefaultSaver<TState, TId>()
         => (aggregate) => Task.FromResult(EventStream.Create(aggregate.Stream.Id, aggregate.Stream.GetUncommittedEvents()));
 }
+
+
+/// <summary>
+/// Represents a validation rule for a specific state type in an aggregate.
+/// </summary>
+/// <typeparam name="TState">The type of the state to which the validation rule applies.</typeparam>
+/// <param name="Rule">A function that defines the validation logic for the state. 
+/// It returns a boolean indicating whether the state is valid.</param>
+/// <param name="Message">The message to be displayed if the validation fails.</param>
 public record ValidationRule<TState>(Func<TState, bool> Rule, string Message);
