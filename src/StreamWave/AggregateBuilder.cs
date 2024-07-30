@@ -62,7 +62,7 @@ public class AggregateBuilder<TState, TId> : IAggregateBuilder<TState, TId>
         return this;
     }
 
-    public IAggregateBuilder<TState, TId> WithApplier<TEvent>(Func<TState, TEvent, TState> applier) where TEvent : Event
+    public IAggregateBuilder<TState, TId> WithApplier<TEvent>(Func<TState, TEvent, Task<TState>> applier) where TEvent : Event
     {
         _events.Add(typeof(TEvent), (state, e) => applier(state, (TEvent)e));
         return this;

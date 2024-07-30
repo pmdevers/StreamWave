@@ -5,22 +5,28 @@ namespace StreamWave.Tests;
 public class RegistrationTest
 {
     [Fact]
-    public void AddAggregate_Test()
+    public async Task AddAggregate_Test()
     {
         var services = new ServiceCollection();
 
         services.AddAggregate<TestState, Guid>(() => new TestState {  Id = Guid.NewGuid() })
             .WithApplier<CreatedEvent>((state, e) => {
                 state.Id = e.Id;
-                return state;
+                return Task.FromResult(state);
             });
 
         var provider = services.BuildServiceProvider();
 
-        var aggregate = provider.GetRequiredService<IAggregate<TestState, Guid>>();
+        var manager = provider.GetRequiredService<IAggregateManager<TestState, Guid>>();
+
+        var aggregate = await manager.LoadAsync(Guid.NewGuid());
+        var aggregate1 = await manager.LoadAsync(Guid.NewGuid());
 
         aggregate.Should().NotBeNull();
         aggregate.Stream.Id.Should().Be(aggregate.State.Id);
+
+        aggregate1.State.Id.Should().NotBe(aggregate.State.Id);
+        aggregate1.Stream.Id.Should().NotBe(aggregate.Stream.Id);
     }
 }
 
