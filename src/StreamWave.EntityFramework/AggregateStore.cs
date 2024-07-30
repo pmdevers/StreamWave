@@ -1,34 +1,64 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Text;
 using System.Text.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace StreamWave.EntityFramework;
 
-public static partial class AggregateStore<TState, TId>
+public interface IEventSerializer
+{
+    object? Deserialize(byte[] data, Type type);
+    byte[] Serialize(object value, Type type);
+}
+
+public class DefaultSerializer(JsonSerializerOptions options) : IEventSerializer
+{
+    public JsonSerializerOptions Options { get; } = options;
+
+    public object? Deserialize(byte[] data, Type type)
+    {
+        using var stream = new MemoryStream(data);
+        return JsonSerializer.Deserialize(stream, type, Options);
+    }
+
+    public byte[] Serialize(object value, Type type)
+    {
+        using var stream = new MemoryStream();
+        JsonSerializer.Serialize(stream, value, type, Options);
+        stream.Flush();
+        return stream.ToArray();
+    }
+}
+
+public class AggregateStore<TState, TId>(DbContext context, IEventSerializer serializer)
     where TState : class
     where TId : struct
 {
-    public static async Task<IEventStream<TId>> SaveAsync(DbContext context, IAggregate<TState, TId> aggregate)
+    private readonly IEventSerializer _serializer = serializer;
+
+    public async Task<IEventStream<TId>> SaveAsync(IAggregate<TState, TId> aggregate)
     {
         if (!aggregate.Stream.HasUncommittedChanges)
         {
             return aggregate.Stream;
         }
 
-        SaveState(context, aggregate.State);
-        SaveEvents(context, aggregate.Stream);
+        SaveState(aggregate.State);
+        SaveEvents(aggregate.Stream);
 
         await context.SaveChangesAsync();
 
         return aggregate.Stream.Commit();
     }
 
-    private static void SaveState(DbContext context, TState state)
+    private void SaveState(TState state)
     {
         context.Remove(state);
         context.Add(state);
     }
 
-    private static void SaveEvents(DbContext context, IEventStream<TId> stream)
+    private void SaveEvents(IEventStream<TId> stream)
     {
         var events = stream.GetUncommittedEvents();
 
@@ -42,12 +72,12 @@ public static partial class AggregateStore<TState, TId>
                stream.Id,
                version,
                e.GetType().AssemblyQualifiedName ?? string.Empty,
-               JsonSerializer.Serialize(e, e.GetType(), JsonSerializerOptions.Default)
+               _serializer.Serialize(e, e.GetType())
            ));
         }
     }
 
-    public static async Task<IEventStream<TId>?> LoadAsync(DbContext context, TId id)
+    public async Task<IEventStream<TId>?> LoadAsync(TId id)
     {
         var events = await context.Set<PersistendEvent<TId>>()
             .Where(x => x.StreamId.Equals(id))
@@ -58,7 +88,7 @@ public static partial class AggregateStore<TState, TId>
         return EventStream.Create(id, events);
     }
 
-    private static Event GetEvent(PersistendEvent<TId> x)
+    private Event GetEvent(PersistendEvent<TId> x)
     {
         var eventType = Type.GetType(x.EventName);
 
@@ -67,7 +97,7 @@ public static partial class AggregateStore<TState, TId>
             return new UnkownEventType(x.EventName, x.Payload);
         }
 
-        var e = JsonSerializer.Deserialize(x.Payload, eventType);
+        var e = _serializer.Deserialize(x.Payload, eventType);
         if (e is Event ev)
         {
             return ev;

@@ -5,6 +5,7 @@
 ![GitHub License](https://img.shields.io/github/license/pmdevers/streamwave)
 ![Github Issues Open](https://img.shields.io/github/issues/pmdevers/streamwave)
 ![Github Pull Request Open](https://img.shields.io/github/issues-pr/pmdevers/streamwave)
+[![Scheduled Code Security Testing](https://github.com/pmdevers/streamwave/actions/workflows/security-analysis.yml/badge.svg?event=schedule)](https://github.com/pmdevers/streamwave/actions/workflows/security-analysis.yml)
 
 
 An aggregate root designed for a streaming environment, addressing the dual write problem by decoupling the domain model from the event stream.
