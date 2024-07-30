@@ -11,7 +11,7 @@ public class AggregateTest
         {
             var aggregate = new Aggregate<TestState, Guid>(
                 creator: () => new(),
-                applier: (s, _) => s,
+                applier: (s, _) => Task.FromResult(s),
                 validator: _ => [],
                 loader: id => {
                     return Task.FromResult<IEventStream<Guid>?>(EventStream.Create(Guid.Empty));
@@ -41,7 +41,7 @@ public class AggregateTest
             
             var aggregate = new Aggregate<TestState, Guid>(
                 creator: () => new(), 
-                applier: (s, _) => s, 
+                applier: (s, _) => Task.FromResult(s), 
                 validator: _ => [], 
                 loader: (id) => loader(id), 
                 saver: s => Task.FromResult(s.Stream.Commit()));
@@ -64,7 +64,7 @@ public class AggregateTest
     public class Apply
     {
         [Fact]
-        public void should_call_applier()
+        public async Task should_call_applier()
         {
             var applier = Substitute.For<ApplyEventDelegate<TestState>>();
                 
@@ -79,7 +79,7 @@ public class AggregateTest
                 loader: AggregateBuilderDefaults.DefaultLoader<Guid>(),
                 saver: s => Task.FromResult(s.Stream.Commit()));
 
-            aggregate.Apply(new EmptyEvent());
+            await aggregate.ApplyAsync(new EmptyEvent());
 
             aggregate.State.Property.Should().Be("test");
             aggregate.IsValid.Should().BeTrue();
@@ -95,7 +95,7 @@ public class AggregateTest
         {
             var aggregate = new Aggregate<TestState, Guid>(
                 creator: () => new(),
-                applier: (s, _) => s,
+                applier: (s, _) => Task.FromResult(s),
                 validator: AggregateBuilderDefaults.DefaultValidator<TestState>([]),
                 loader: AggregateBuilderDefaults.DefaultLoader<Guid>(),
                 saver: s => Task.FromResult(s.Stream.Commit()));
@@ -103,7 +103,7 @@ public class AggregateTest
             aggregate.Stream.Version.Should().Be(0);
             aggregate.Stream.ExpectedVersion.Should().Be(0);
 
-            aggregate.Apply(new EmptyEvent());
+            await aggregate.ApplyAsync(new EmptyEvent());
 
             await aggregate.SaveAsync();
 
@@ -116,7 +116,7 @@ public class AggregateTest
     public class State
     {
         [Fact]
-        public void should_call_applier()
+        public async Task should_call_applier()
         {
             var loader = Substitute.For<ApplyEventDelegate<TestState>>();
 
@@ -134,7 +134,7 @@ public class AggregateTest
             aggregate.Stream.Version.Should().Be(0);
             aggregate.Stream.ExpectedVersion.Should().Be(0);
 
-            aggregate.Apply(new EmptyEvent());
+            await aggregate.ApplyAsync(new EmptyEvent());
 
             aggregate.IsValid.Should().BeTrue();
             aggregate.Stream.Version.Should().Be(0);
@@ -150,7 +150,7 @@ public class AggregateTest
     public class Messages
     {
         [Fact]
-        public void should_call_validator()
+        public async Task should_call_validator()
         {
             var validator = Substitute.For<ValidateStateDelegate<TestState>>();
 
@@ -159,12 +159,12 @@ public class AggregateTest
 
             var aggregate = new Aggregate<TestState, Guid>(
                 creator: () => new(),
-                applier: (s, _) => s,
+                applier: (s, _) => Task.FromResult(s),
                 validator: validator,
                 loader: AggregateBuilderDefaults.DefaultLoader<Guid>(),
                 saver: s => Task.FromResult(s.Stream.Commit()));
 
-            aggregate.Apply(new EmptyEvent());
+            await aggregate.ApplyAsync(new EmptyEvent());
 
             aggregate.IsValid.Should().BeTrue();
             aggregate.Messages.Should().BeEmpty();
@@ -175,7 +175,7 @@ public class AggregateTest
         }
 
         [Fact]
-        public void should_return_validation_messages()
+        public async Task should_return_validation_messages()
         {
             var validator = Substitute.For<ValidateStateDelegate<TestState>>();
 
@@ -184,12 +184,12 @@ public class AggregateTest
 
             var aggregate = new Aggregate<TestState, Guid>(
                 creator: () => new(),
-                applier: (s, _) => s,
+                applier: (s, _) => Task.FromResult(s),
                 validator: validator,
                 loader: AggregateBuilderDefaults.DefaultLoader<Guid>(),
                 saver: s => Task.FromResult(s.Stream.Commit()));
 
-            aggregate.Apply(new EmptyEvent());
+            await aggregate.ApplyAsync(new EmptyEvent());
 
             aggregate.IsValid.Should().BeFalse();
             aggregate.Messages.Should().HaveCount(1);
@@ -213,7 +213,7 @@ public class AggregateTest
 
             var aggregate = new Aggregate<TestState, Guid>(
                creator: () => new(),
-               applier: (s, _) => s,
+               applier: (s, _) => Task.FromResult(s),
                validator: AggregateBuilderDefaults.DefaultValidator<TestState>([]),
                loader: loader,
                saver: s => Task.FromResult(s.Stream.Commit()));
@@ -221,7 +221,7 @@ public class AggregateTest
             aggregate.Stream.Version.Should().Be(0);
             aggregate.Stream.ExpectedVersion.Should().Be(0);
 
-            aggregate.Apply(new EmptyEvent());
+            await aggregate.ApplyAsync(new EmptyEvent());
 
             await aggregate.SaveAsync();
 

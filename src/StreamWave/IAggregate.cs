@@ -6,7 +6,7 @@ public interface IAggregate<out TState, TId>
     IEventStream<TId> Stream { get; }
     ValidationMessage[] Messages { get; }
     bool IsValid { get; }
-    void Apply(Event e);
+    Task ApplyAsync(Event e);
     Task LoadAsync(TId id);
     Task SaveAsync();
 }

@@ -27,14 +27,16 @@ public class StorageRegistration
             .WithApplier<TestEvent>((s, e) =>
             {
                 s.Test = e.Field;
-                return s;
+                return Task.FromResult(s);
             }); 
 
         var provider = services.BuildServiceProvider();
 
-        var aggregate = provider.GetRequiredService<IAggregate<TestState, Guid>>();
+        var manager = provider.GetRequiredService<IAggregateManager<TestState, Guid>>();
 
-        aggregate.Apply(new TestEvent("test"));
+        var aggregate = await manager.Create();
+
+        await aggregate.ApplyAsync(new TestEvent("test"));
 
         await aggregate.SaveAsync();
 
@@ -54,16 +56,17 @@ public class StorageRegistration
             .WithApplier<TestEvent>((s, e) =>
             {
                 s.Test = e.Field;
-                return s;
+                return Task.FromResult(s);
             });
 
         var provider = services.BuildServiceProvider();
+        var manager = provider.GetRequiredService<IAggregateManager<TestState, Guid>>();
 
-        var aggregate = provider.GetRequiredService<IAggregate<TestState, Guid>>();
-        var aggregate1 = provider.GetRequiredService<IAggregate<TestState, Guid>>();
+        var aggregate = await manager.Create();
+        var aggregate1 = await manager.Create();
 
-        aggregate.Apply(new TestEvent("Aggregate 0"));
-        aggregate1.Apply(new TestEvent("Aggregate 1"));
+        await aggregate.ApplyAsync(new TestEvent("Aggregate 0"));
+        await aggregate1.ApplyAsync(new TestEvent("Aggregate 1"));
 
         await aggregate.SaveAsync();
         await aggregate1.SaveAsync();

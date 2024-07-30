@@ -2,7 +2,7 @@
 
 public delegate TState CreateStateDelegate<out TState, in TId>() 
     where TState : IAggregateState<TId>;
-public delegate TState ApplyEventDelegate<TState>(TState state, Event e);
+public delegate Task<TState> ApplyEventDelegate<TState>(TState state, Event e);
 public delegate Task<IEventStream<TId>?> LoadEventStreamDelegate<TId>(TId id);
 public delegate Task<IEventStream<TId>> SaveAggregateDelegate<TState, TId>(IAggregate<TState, TId> aggregate);
 
@@ -33,7 +33,7 @@ public class Aggregate<TState, TId>
         
         State = _creator();
         _stream = EventStream.Create(State.Id);
-        UpdateState();
+        State.Id = _stream.Id;
     }
     
     private IEventStream<TId> _stream;
@@ -42,24 +42,26 @@ public class Aggregate<TState, TId>
     public bool IsValid => Messages.Length == 0;
     public IEventStream<TId> Stream => _stream;
 
-    public void Apply(Event e)
+    public async Task ApplyAsync(Event e)
     {
-        State = _applier(State, e);
+        State = await _applier(State, e);
         _stream.Append(e);
     }
     public async Task LoadAsync(TId id)
     {
         _stream = await _loader(id) ?? EventStream.Create(id);
-        UpdateState();
+        await UpdateState();
     }
     public async Task SaveAsync()
     {
         _stream = await _saver(this);
-        UpdateState();
+        await UpdateState();
     }
-    private void UpdateState()
+    private async Task UpdateState()
     {
-        State = _stream.Aggregate(_creator(), (state, e) => _applier(state, e));
+        State = await _stream.AggregateAsync(_creator(), async (state, e) => await _applier(state, e));
         State.Id = _stream.Id;
     }
 }
+
+
