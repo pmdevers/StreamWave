@@ -6,13 +6,29 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace StreamWave.EntityFramework;
 
+/// <summary>
+/// Defines methods for serializing and deserializing event data in an event-sourced system.
+/// </summary>
 public interface IEventSerializer
 {
+    /// <summary>
+    /// Deserializes the provided byte array into an object of the specified type.
+    /// </summary>
+    /// <param name="data">The byte array containing the serialized data.</param>
+    /// <param name="type">The type of the object to deserialize.</param>
+    /// <returns>The deserialized object, or null if the data cannot be deserialized.</returns>
     object? Deserialize(byte[] data, Type type);
+
+    /// <summary>
+    /// Serializes the provided object into a byte array.
+    /// </summary>
+    /// <param name="value">The object to serialize.</param>
+    /// <param name="type">The type of the object being serialized.</param>
+    /// <returns>A byte array containing the serialized data.</returns>
     byte[] Serialize(object value, Type type);
 }
 
-public class DefaultSerializer(JsonSerializerOptions options) : IEventSerializer
+internal class DefaultSerializer(JsonSerializerOptions options) : IEventSerializer
 {
     public JsonSerializerOptions Options { get; } = options;
 
@@ -31,7 +47,7 @@ public class DefaultSerializer(JsonSerializerOptions options) : IEventSerializer
     }
 }
 
-public class AggregateStore<TState, TId>(DbContext context, IEventSerializer serializer)
+internal class AggregateStore<TState, TId>(DbContext context, IEventSerializer serializer)
     where TState : class
     where TId : struct
 {
@@ -67,7 +83,7 @@ public class AggregateStore<TState, TId>(DbContext context, IEventSerializer ser
         foreach (var e in events)
         {
             version++;
-            context.Add(new PersistendEvent<TId>(
+            context.Add(new PersistedEvent<TId>(
                Guid.NewGuid(),
                stream.Id,
                version,
@@ -79,7 +95,7 @@ public class AggregateStore<TState, TId>(DbContext context, IEventSerializer ser
 
     public async Task<IEventStream<TId>?> LoadAsync(TId id)
     {
-        var events = await context.Set<PersistendEvent<TId>>()
+        var events = await context.Set<PersistedEvent<TId>>()
             .Where(x => x.StreamId.Equals(id))
             .OrderBy(x => x.Version)
             .Select(x => GetEvent(x))
@@ -88,13 +104,13 @@ public class AggregateStore<TState, TId>(DbContext context, IEventSerializer ser
         return EventStream.Create(id, events);
     }
 
-    private Event GetEvent(PersistendEvent<TId> x)
+    private Event GetEvent(PersistedEvent<TId> x)
     {
         var eventType = Type.GetType(x.EventName);
 
         if (eventType == null)
         {
-            return new UnkownEventType(x.EventName, x.Payload);
+            return new UnknownEventType(x.EventName, x.Payload);
         }
 
         var e = _serializer.Deserialize(x.Payload, eventType);
@@ -103,6 +119,6 @@ public class AggregateStore<TState, TId>(DbContext context, IEventSerializer ser
             return ev;
         }
 
-        return new UnkownEventType(x.EventName, x.Payload);
+        return new UnknownEventType(x.EventName, x.Payload);
     }
 }

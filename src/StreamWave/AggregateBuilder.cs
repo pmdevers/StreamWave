@@ -2,7 +2,7 @@
 
 namespace StreamWave;
 
-public class AggregateBuilder<TState, TId> : IAggregateBuilder<TState, TId>
+internal class AggregateBuilder<TState, TId> : IAggregateBuilder<TState, TId>
     where TState : IAggregateState<TId>
 {
     private readonly Dictionary<Type, ApplyEventDelegate<TState>> _events = [];
