@@ -61,11 +61,6 @@ public class EventStream<TId>(TId streamId, IEnumerable<EventRecord>? events) : 
     public DateTimeOffset? LastModifiedOn => _LastModifiedOn ?? TimeProvider.System.GetUtcNow();
 
     /// <summary>
-    /// Gets the total count of committed events in the event stream.
-    /// </summary>
-    public int Count { get; private set; }
-
-    /// <summary>
     /// Appends a new event to the uncommitted events list.
     /// </summary>
     /// <param name="e">The event to be appended.</param>
@@ -98,7 +93,6 @@ public class EventStream<TId>(TId streamId, IEnumerable<EventRecord>? events) : 
                 _createdOn = e.OccurredOn;
             }
             _LastModifiedOn = e.OccurredOn;
-            Count++;
             Version++;
             yield return e;
             await Task.Yield(); // Ensure it's asynchronous
