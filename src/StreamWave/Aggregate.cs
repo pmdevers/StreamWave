@@ -46,12 +46,7 @@ public delegate Task<IEventStream<TId>> SaveAggregateDelegate<TState, TId>(IAggr
 /// <returns>An array of validation messages indicating the validation results.</returns>
 public delegate ValidationMessage[] ValidateStateDelegate<in TState>(TState state);
 
-/// <summary>
-/// Aggregate class representing an aggregate in a domain-driven design context.
-/// </summary>
-/// <typeparam name="TState"></typeparam>
-/// <typeparam name="TId"></typeparam>
-public class Aggregate<TState, TId>
+internal class Aggregate<TState, TId>
     : IAggregate<TState, TId>
     where TState : IAggregateState<TId>
 {
@@ -81,31 +76,14 @@ public class Aggregate<TState, TId>
     
     private IEventStream<TId> _stream;
 
-    /// <summary>
-    /// The current state of the aggregate.
-    /// </summary>
     public TState State { get; private set; }
 
-    /// <summary>
-    /// Validation messages for the current state.
-    /// </summary>
     public ValidationMessage[] Messages => _validator(State);
 
-    /// <summary>
-    /// Indicates whether the aggregate's state is valid.
-    /// </summary>
     public bool IsValid => Messages.Length == 0;
 
-    /// <summary>
-    /// The event stream for external access.
-    /// </summary>
     public IEventStream<TId> Stream => _stream;
 
-    /// <summary>
-    /// Applies an event to the aggregate, updating its state asynchronously.
-    /// </summary>
-    /// <param name="e"></param>
-    /// <returns></returns>
     public Task ApplyAsync(object e)
     {
         State = _applier(State, e);
@@ -113,31 +91,18 @@ public class Aggregate<TState, TId>
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Loads the aggregate's state from the event stream based on its ID.
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
     internal async Task LoadAsync(TId id)
     {
         _stream = _loader(id) ?? EventStream.Create(id);
         await UpdateState();
     }
 
-    /// <summary>
-    /// Saves the current state of the aggregate, updating the event stream.
-    /// </summary>
-    /// <returns></returns>
     internal async Task SaveAsync()
     {
         _stream = await _saver(this);
         await UpdateState();
     }
 
-    /// <summary>
-    /// Updates the aggregate's state by applying events from the event stream.
-    /// </summary>
-    /// <returns></returns>
     private async Task UpdateState()
     {
         State = await _stream.Select(x => x.Event).AggregateAsync(_creator(), (state, e) => _applier(state, e));
