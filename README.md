@@ -10,7 +10,7 @@
 
 An aggregate root designed for a streaming environment, addressing the dual write problem by decoupling the domain model from the event stream.
 
-![Alt text](/assets/logo.png "logo")
+![Alt text](https://raw.githubusercontent.com/pmdevers/streamwave/master/assets/logo.png "logo")
 
 ## Table of Contents
 
