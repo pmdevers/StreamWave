@@ -80,7 +80,7 @@ public class StorageRegistration
         await manager.SaveAsync(aggregate1);
         await manager.SaveAsync(aggregate);
 
-        await manager.LoadAsync(aggregate1.Stream.Id);
+        aggregate = await manager.LoadAsync(aggregate1.Stream.Id);
 
         aggregate.Should().NotBeNull();
         aggregate.State.Id.Should().Be(aggregate1.State.Id);
