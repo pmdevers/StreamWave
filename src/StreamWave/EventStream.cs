@@ -13,7 +13,7 @@ public static class EventStream
     /// <param name="streamId">The identifier for the event stream.</param>
     /// <param name="events">An optional array of initial events.</param>
     /// <returns>An instance of <see cref="IEventStream{TId}"/>.</returns>
-    public static IEventStream<TId> Create<TId>(TId streamId, Event[]? events = null)
+    public static IEventStream<TId> Create<TId>(TId streamId, EventRecord[]? events = null)
         => new EventStream<TId>(streamId, events);
 }
 
@@ -23,10 +23,10 @@ public static class EventStream
 /// <typeparam name="TId">The type of the identifier for the event stream.</typeparam>
 /// <param name="streamId">The identifier for the event stream.</param>
 /// <param name="events">An optional array of initial events.</param>
-public class EventStream<TId>(TId streamId, Event[]? events = null) : IEventStream<TId>
+public class EventStream<TId>(TId streamId, EventRecord[]? events = null) : IEventStream<TId>
 {
-    private readonly Event[] _events = events ?? [];
-    private readonly List<Event> _uncommitted = [];
+    private readonly EventRecord[] _events = events ?? [];
+    private readonly List<EventRecord> _uncommitted = [];
 
     /// <summary>
     /// Gets the identifier for the event stream.
@@ -71,13 +71,14 @@ public class EventStream<TId>(TId streamId, Event[]? events = null) : IEventStre
     /// Appends a new event to the uncommitted events list.
     /// </summary>
     /// <param name="e">The event to be appended.</param>
-    public void Append(Event e) => _uncommitted.Add(e);
+    public void Append(object e)
+        => _uncommitted.Add(EventRecord.Create(e));
 
     /// <summary>
     /// Returns an enumerator that iterates through the committed events.
     /// </summary>
     /// <returns>An enumerator for the committed events.</returns>
-    public IEnumerator<Event> GetEnumerator() => _events.ToList().GetEnumerator();
+    public IEnumerator<EventRecord> GetEnumerator() => _events.ToList().GetEnumerator();
 
     /// <summary>
     /// Returns an enumerator that iterates through the committed events (non-generic).
@@ -89,11 +90,26 @@ public class EventStream<TId>(TId streamId, Event[]? events = null) : IEventStre
     /// Gets the list of uncommitted events.
     /// </summary>
     /// <returns>An array of uncommitted events.</returns>
-    public Event[] GetUncommittedEvents() => [.. _uncommitted];
+    public EventRecord[] GetUncommittedEvents() => [.. _uncommitted];
 
     /// <summary>
     /// Commits the uncommitted events, returning a new event stream with the changes.
     /// </summary>
     /// <returns>A new instance of <see cref="IEventStream{TId}"/> with the committed events.</returns>
     public IEventStream<TId> Commit() => EventStream.Create(Id, [.. _events, .. _uncommitted]);
+}
+
+
+/// <summary>
+/// Represents an abstract base class for domain events in an event-sourced system.
+/// </summary>
+public record EventRecord(object Event, Type EventType, DateTimeOffset OccurredOn)
+{
+    /// <summary>
+    /// Creates an event records
+    /// </summary>
+    /// <param name="e"></param>
+    /// <returns></returns>
+    public static EventRecord Create(object e)
+        => new (e, e.GetType(), TimeProvider.System.GetUtcNow());
 }

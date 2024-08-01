@@ -12,7 +12,7 @@ public interface IAggregateBuilder<TState, TId>
     /// </summary>
     /// <param name="events">An array of events to be applied to the aggregate.</param>
     /// <returns>The current instance of <see cref="IAggregateBuilder{TState, TId}"/>.</returns>
-    IAggregateBuilder<TState, TId> WithEvents(Event[] events);
+    IAggregateBuilder<TState, TId> WithEvents(EventRecord[] events);
 
     /// <summary>
     /// Configures the builder with a loader function for loading the event stream.
@@ -42,7 +42,7 @@ public interface IAggregateBuilder<TState, TId>
     /// <param name="applier">A function that applies the specific event type to the state.</param>
     /// <returns>The current instance of <see cref="IAggregateBuilder{TState, TId}"/>.</returns>
     IAggregateBuilder<TState, TId> WithApplier<TEvent>(Func<TState, TEvent, Task<TState>> applier)
-        where TEvent : Event;
+        where TEvent : notnull;
 
     /// <summary>
     /// Configures the builder with a validator function for validating the aggregate's state.

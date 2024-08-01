@@ -4,7 +4,7 @@
 /// Represents an event stream, which is a sequence of events that captures changes to an aggregate's state.
 /// </summary>
 /// <typeparam name="TId">The type of the identifier for the event stream.</typeparam>
-public interface IEventStream<TId> : IReadOnlyCollection<Event>
+public interface IEventStream<TId> : IReadOnlyCollection<EventRecord>
 {
     /// <summary>
     /// Gets the identifier of the event stream.
@@ -40,13 +40,13 @@ public interface IEventStream<TId> : IReadOnlyCollection<Event>
     /// Appends an event to the uncommitted events list, representing a new change in the aggregate's state.
     /// </summary>
     /// <param name="e">The event to append.</param>
-    void Append(Event e);
+    void Append(object e);
 
     /// <summary>
     /// Gets the array of uncommitted events, which are events that have been applied but not yet saved.
     /// </summary>
     /// <returns>An array of uncommitted events.</returns>
-    Event[] GetUncommittedEvents();
+    EventRecord[] GetUncommittedEvents();
 
     /// <summary>
     /// Commits the uncommitted events to the event stream, returning a new event stream instance with these events.

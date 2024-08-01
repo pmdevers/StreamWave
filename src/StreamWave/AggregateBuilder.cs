@@ -18,7 +18,7 @@ internal class AggregateBuilder<TState, TId> : IAggregateBuilder<TState, TId>
     {
         _creator = creator;
     }
-    public IAggregateBuilder<TState, TId> WithEvents(Event[] events)
+    public IAggregateBuilder<TState, TId> WithEvents(EventRecord[] events)
     {
         _loader = (_) => AggregateBuilderDefaults.DefaultLoader<TId>(events);
         return this;
@@ -64,7 +64,7 @@ internal class AggregateBuilder<TState, TId> : IAggregateBuilder<TState, TId>
         return this;
     }
 
-    public IAggregateBuilder<TState, TId> WithApplier<TEvent>(Func<TState, TEvent, Task<TState>> applier) where TEvent : Event
+    public IAggregateBuilder<TState, TId> WithApplier<TEvent>(Func<TState, TEvent, Task<TState>> applier) where TEvent : notnull
     {
         _events.Add(typeof(TEvent), (state, e) => applier(state, (TEvent)e));
         return this;

@@ -12,7 +12,7 @@ internal static class AggregateBuilderDefaults
                          .Select(x => new ValidationMessage(x.Message))
                          .ToArray();
 
-    public static LoadEventStreamDelegate<TId> DefaultLoader<TId>(Event[]? events = null)
+    public static LoadEventStreamDelegate<TId> DefaultLoader<TId>(EventRecord[]? events = null)
         => (streamId) => Task.FromResult(events is not null ? EventStream.Create(streamId, events) : null);
 
     public static SaveAggregateDelegate<TState, TId> DefaultSaver<TState, TId>()
