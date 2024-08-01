@@ -16,19 +16,19 @@ public class StorageRegistration
         services.AddScoped<IEventSerializer, DefaultSerializer>();
 
         services.AddAggregate<TestState, Guid>(() => new())
-            .WithLoader((s) =>
+            .WithStreamLoader((s) =>
                   (id) =>
                   {
                       var context = s.GetRequiredService<TestContext>();
                       var serializer = s.GetRequiredService<IEventSerializer>();
-                      return new AggregateStore<TestState, Guid>(context, serializer).LoadAsync(id);
+                      return new Store<TestState, Guid>(context, serializer).LoadStreamAsync(id);
                   }
             )
             .WithSaver((s) =>
                 (a) => {
                     var context = s.GetRequiredService<TestContext>();
                     var serializer = s.GetRequiredService<IEventSerializer>();
-                    return new AggregateStore<TestState, Guid>(context, serializer).SaveAsync(a);
+                    return new Store<TestState, Guid>(context, serializer).SaveAsync(a);
                 })
             .WithApplier<TestEvent>((s, e) =>
             {
@@ -44,9 +44,9 @@ public class StorageRegistration
 
         await aggregate.ApplyAsync(new TestEvent("test"));
 
-        await aggregate.SaveAsync();
+        await manager.SaveAsync(aggregate);
 
-        await aggregate.LoadAsync(aggregate.Stream.Id);
+        await manager.LoadAsync(aggregate.Stream.Id);
 
         aggregate.Should().NotBeNull();
     }
@@ -77,10 +77,10 @@ public class StorageRegistration
         await aggregate.ApplyAsync(new TestEvent("Aggregate 0"));
         await aggregate1.ApplyAsync(new TestEvent("Aggregate 1"));
 
-        await aggregate.SaveAsync();
-        await aggregate1.SaveAsync();
+        await manager.SaveAsync(aggregate1);
+        await manager.SaveAsync(aggregate);
 
-        await aggregate.LoadAsync(aggregate1.Stream.Id);
+        await manager.LoadAsync(aggregate1.Stream.Id);
 
         aggregate.Should().NotBeNull();
         aggregate.State.Id.Should().Be(aggregate1.State.Id);

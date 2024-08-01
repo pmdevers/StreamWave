@@ -19,7 +19,7 @@ public interface IAggregateBuilder<TState, TId>
     /// </summary>
     /// <param name="loader">A function that provides the loader delegate, using the service provider.</param>
     /// <returns>The current instance of <see cref="IAggregateBuilder{TState, TId}"/>.</returns>
-    IAggregateBuilder<TState, TId> WithLoader(Func<IServiceProvider, LoadEventStreamDelegate<TId>> loader);
+    IAggregateBuilder<TState, TId> WithStreamLoader(Func<IServiceProvider, LoadEventStreamDelegate<TId>> loader);
 
     /// <summary>
     /// Configures the builder with a saver function for saving the aggregate.

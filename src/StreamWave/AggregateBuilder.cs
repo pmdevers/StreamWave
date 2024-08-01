@@ -40,7 +40,7 @@ internal class AggregateBuilder<TState, TId> : IAggregateBuilder<TState, TId>
         return this;
     }
 
-    public IAggregateBuilder<TState, TId> WithLoader(Func<IServiceProvider, LoadEventStreamDelegate<TId>> loader)
+    public IAggregateBuilder<TState, TId> WithStreamLoader(Func<IServiceProvider, LoadEventStreamDelegate<TId>> loader)
     {
         _loader = loader;
         return this;

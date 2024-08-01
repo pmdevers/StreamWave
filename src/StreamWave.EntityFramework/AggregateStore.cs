@@ -47,7 +47,7 @@ internal class DefaultSerializer(JsonSerializerOptions options) : IEventSerializ
     }
 }
 
-internal class AggregateStore<TState, TId>(DbContext context, IEventSerializer serializer)
+internal class Store<TState, TId>(DbContext context, IEventSerializer serializer)
     where TState : class
     where TId : struct
 {
@@ -93,7 +93,7 @@ internal class AggregateStore<TState, TId>(DbContext context, IEventSerializer s
         }
     }
 
-    public async Task<IEventStream<TId>?> LoadAsync(TId id)
+    public async Task<IEventStream<TId>?> LoadStreamAsync(TId id)
     {
         var events = await context.Set<PersistedEvent<TId>>()
             .Where(x => x.StreamId.Equals(id))

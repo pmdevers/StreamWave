@@ -25,19 +25,19 @@ public static class AggregateBuilderExtensions
         where TState : class
         where TKey : struct
     {
-            builder.WithLoader((s) =>
+            builder.WithStreamLoader((s) =>
                   (id) =>
                   {
                       var context = s.GetRequiredService<TContext>();
                       var serializer = s.GetRequiredService<IEventSerializer>();
-                      return new AggregateStore<TState, TKey>(context, serializer).LoadAsync(id);
+                      return new Store<TState, TKey>(context, serializer).LoadStreamAsync(id);
                   }
             )
             .WithSaver((s) =>
                 (a) => {
                     var context = s.GetRequiredService<TContext>();
                     var serializer = s.GetRequiredService<IEventSerializer>();
-                    return new AggregateStore<TState, TKey>(context, serializer).SaveAsync(a);
+                    return new Store<TState, TKey>(context, serializer).SaveAsync(a);
                 });
         return builder;
     }
