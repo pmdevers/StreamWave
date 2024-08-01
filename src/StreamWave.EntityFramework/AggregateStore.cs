@@ -87,7 +87,7 @@ internal class Store<TState, TId>(DbContext context, IEventSerializer serializer
                Guid.NewGuid(),
                stream.Id,
                version,
-               e.GetType().AssemblyQualifiedName ?? string.Empty,
+               e.EventType.AssemblyQualifiedName ?? string.Empty,
                _serializer.Serialize(e.Event, e.EventType),
                e.OccurredOn
             ));
