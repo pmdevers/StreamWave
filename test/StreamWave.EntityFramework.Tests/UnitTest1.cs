@@ -33,7 +33,7 @@ public class StorageRegistration
             .WithApplier<TestEvent>((s, e) =>
             {
                 s.Test = e.Field;
-                return Task.FromResult(s);
+                return s;
             }); 
 
         var provider = services.BuildServiceProvider();
@@ -65,7 +65,7 @@ public class StorageRegistration
             .WithApplier<TestEvent>((s, e) =>
             {
                 s.Test = e.Field;
-                return Task.FromResult(s);
+                return s;
             });
 
         var provider = services.BuildServiceProvider();

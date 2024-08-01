@@ -41,7 +41,7 @@ public interface IAggregateBuilder<TState, TId>
     /// <typeparam name="TEvent">The type of the event to be applied.</typeparam>
     /// <param name="applier">A function that applies the specific event type to the state.</param>
     /// <returns>The current instance of <see cref="IAggregateBuilder{TState, TId}"/>.</returns>
-    IAggregateBuilder<TState, TId> WithApplier<TEvent>(Func<TState, TEvent, Task<TState>> applier)
+    IAggregateBuilder<TState, TId> WithApplier<TEvent>(Func<TState, TEvent, TState> applier)
         where TEvent : notnull;
 
     /// <summary>

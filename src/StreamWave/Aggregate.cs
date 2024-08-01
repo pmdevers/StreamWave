@@ -18,7 +18,7 @@ public delegate TState CreateStateDelegate<out TState, in TId>()
 /// <param name="state">The current state of the aggregate.</param>
 /// <param name="e">The event to be applied.</param>
 /// <returns>A task representing the asynchronous operation, with the updated state as the result.</returns>
-public delegate Task<TState> ApplyEventDelegate<TState>(TState state, object e);
+public delegate TState ApplyEventDelegate<TState>(TState state, object e);
 
 /// <summary>
 /// Delegate for loading the event stream of an aggregate based on its identifier.
@@ -27,7 +27,7 @@ public delegate Task<TState> ApplyEventDelegate<TState>(TState state, object e);
 /// <param name="id">The identifier of the aggregate.</param>
 /// <returns>A task representing the asynchronous operation, with the loaded event stream as the result. 
 /// The result can be null if the event stream does not exist.</returns>
-public delegate Task<IEventStream<TId>?> LoadEventStreamDelegate<TId>(TId id);
+public delegate IEventStream<TId> LoadEventStreamDelegate<TId>(TId id);
 
 /// <summary>
 /// Delegate for saving the aggregate and returning the updated event stream.
@@ -106,10 +106,11 @@ public class Aggregate<TState, TId>
     /// </summary>
     /// <param name="e"></param>
     /// <returns></returns>
-    public async Task ApplyAsync(object e)
+    public Task ApplyAsync(object e)
     {
-        State = await _applier(State, e);
+        State = _applier(State, e);
         _stream.Append(e);
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -119,7 +120,7 @@ public class Aggregate<TState, TId>
     /// <returns></returns>
     public async Task LoadAsync(TId id)
     {
-        _stream = await _loader(id) ?? EventStream.Create(id);
+        _stream = _loader(id) ?? EventStream.Create(id);
         await UpdateState();
     }
 
@@ -139,7 +140,7 @@ public class Aggregate<TState, TId>
     /// <returns></returns>
     private async Task UpdateState()
     {
-        State = await _stream.Select(x => x.Event).AggregateAsync(_creator(), async (state, e) => await _applier(state, e));
+        State = await _stream.Select(x => x.Event).AggregateAsync(_creator(), (state, e) => _applier(state, e));
         State.Id = _stream.Id;
     }
 }

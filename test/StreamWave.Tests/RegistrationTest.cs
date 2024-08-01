@@ -13,7 +13,7 @@ public class RegistrationTest
         services.AddAggregate<TestState, Guid>(() => new TestState {  Id = Guid.NewGuid() })
             .WithApplier<CreatedEvent>((state, e) => {
                 state.Id = e.Id;
-                return Task.FromResult(state);
+                return state;
             });
 
         var provider = services.BuildServiceProvider();

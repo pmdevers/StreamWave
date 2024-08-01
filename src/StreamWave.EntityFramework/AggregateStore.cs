@@ -94,13 +94,12 @@ internal class Store<TState, TId>(DbContext context, IEventSerializer serializer
         }
     }
 
-    public async Task<IEventStream<TId>?> LoadStreamAsync(TId id)
+    public IEventStream<TId> LoadStreamAsync(TId id)
     {
-        var events = await context.Set<PersistedEvent<TId>>()
+        var events = context.Set<PersistedEvent<TId>>()
             .Where(x => x.StreamId.Equals(id))
             .OrderBy(x => x.Version)
-            .Select(x => GetEvent(x))
-            .ToArrayAsync();
+            .Select(x => GetEvent(x));
 
         return EventStream.Create(id, events);
     }
