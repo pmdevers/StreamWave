@@ -39,11 +39,11 @@ public interface IAggregate<out TState, TId>
     /// </summary>
     /// <param name="id">The identifier of the aggregate to load.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task LoadAsync(TId id);
+    internal Task LoadAsync(TId id);
 
     /// <summary>
     /// Saves the current state of the aggregate, committing any uncommitted events.
     /// </summary>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task SaveAsync();
+    internal Task SaveAsync();
 }
