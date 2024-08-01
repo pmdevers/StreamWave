@@ -88,8 +88,9 @@ internal class AggregateStore<TState, TId>(DbContext context, IEventSerializer s
                stream.Id,
                version,
                e.GetType().AssemblyQualifiedName ?? string.Empty,
-               _serializer.Serialize(e, e.GetType())
-           ));
+               _serializer.Serialize(e.Event, e.EventType),
+               e.OccurredOn
+            ));
         }
     }
 
@@ -104,21 +105,19 @@ internal class AggregateStore<TState, TId>(DbContext context, IEventSerializer s
         return EventStream.Create(id, events);
     }
 
-    private Event GetEvent(PersistedEvent<TId> x)
+    private EventRecord GetEvent(PersistedEvent<TId> x)
     {
         var eventType = Type.GetType(x.EventName);
 
-        if (eventType == null)
+        if (eventType is not null)
         {
-            return new UnknownEventType(x.EventName, x.Payload);
+            var e = _serializer.Deserialize(x.Payload, eventType);
+            if(e is not null)
+            {
+                return new(e, eventType, x.OccurredOn);
+            }
         }
 
-        var e = _serializer.Deserialize(x.Payload, eventType);
-        if (e is Event ev)
-        {
-            return ev;
-        }
-
-        return new UnknownEventType(x.EventName, x.Payload);
+        return new(new UnknownEventType(x.EventName, x.Payload), typeof(UnknownEventType), x.OccurredOn);
     }
 }

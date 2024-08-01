@@ -100,7 +100,7 @@ public class TestContext(DbContextOptions<TestContext> options) : DbContext(opti
     }
 }
 
-public record TestEvent(string Field) : Event;
+public record TestEvent(string Field);
 
 public class TestState : IAggregateState<Guid>
 { 

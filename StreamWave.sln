@@ -28,9 +28,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StreamWave", "src\StreamWav
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StreamWave.Tests", "test\StreamWave.Tests\StreamWave.Tests.csproj", "{AB3DC0EB-4588-4454-A546-01DCF5E8BDFF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamWave.EntityFramework", "src\StreamWave.EntityFramework\StreamWave.EntityFramework.csproj", "{6B4A7731-194B-414E-9C1C-42F3B27B1237}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StreamWave.EntityFramework", "src\StreamWave.EntityFramework\StreamWave.EntityFramework.csproj", "{6B4A7731-194B-414E-9C1C-42F3B27B1237}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamWave.EntityFramework.Tests", "test\StreamWave.EntityFramework.Tests\StreamWave.EntityFramework.Tests.csproj", "{56ED3858-E15A-4F62-A69E-034442BC0899}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StreamWave.EntityFramework.Tests", "test\StreamWave.EntityFramework.Tests\StreamWave.EntityFramework.Tests.csproj", "{56ED3858-E15A-4F62-A69E-034442BC0899}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -32,7 +32,7 @@ public interface IAggregate<out TState, TId>
     /// </summary>
     /// <param name="e">The event to apply.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task ApplyAsync(Event e);
+    Task ApplyAsync(object e);
 
     /// <summary>
     /// Loads the aggregate's state from the event stream using the specified identifier.

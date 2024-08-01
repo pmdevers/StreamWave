@@ -68,7 +68,7 @@ public class AggregateTest
         {
             var applier = Substitute.For<ApplyEventDelegate<TestState>>();
                 
-            applier(Arg.Any<TestState>(), Arg.Any<Event>())
+            applier(Arg.Any<TestState>(), Arg.Any<object>())
                 .ReturnsForAnyArgs(new TestState { Property = "test" });
             
 
@@ -120,7 +120,7 @@ public class AggregateTest
         {
             var loader = Substitute.For<ApplyEventDelegate<TestState>>();
 
-            loader(Arg.Any<TestState>(), Arg.Any<Event>())
+            loader(Arg.Any<TestState>(), Arg.Any<object>())
                 .Returns(new TestState());
 
 
@@ -204,7 +204,7 @@ public class AggregateTest
         public async Task should_return_loaded_stream()
         {
             var stream = EventStream.Create(Guid.NewGuid(), [
-                new EmptyEvent()
+                new(new EmptyEvent(), typeof(EmptyEvent), TimeProvider.System.GetUtcNow())
                 ]);
             var loader = Substitute.For<LoadEventStreamDelegate<Guid>>();
 

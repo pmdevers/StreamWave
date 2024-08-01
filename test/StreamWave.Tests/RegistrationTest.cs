@@ -18,10 +18,7 @@ public class RegistrationTest
 
         var provider = services.BuildServiceProvider();
 
-        var builder = provider.GetRequiredService<IAggregateBuilder<TestState, Guid>>();    
-
-        var aggregate2 = builder.Build(provider);
-
+       
         var manager = provider.GetRequiredService<IAggregateManager<TestState, Guid>>();
 
         var aggregate = await manager.LoadAsync(Guid.NewGuid());
@@ -35,4 +32,4 @@ public class RegistrationTest
     }
 }
 
-public record CreatedEvent(Guid Id) : Event;
+public record CreatedEvent(Guid Id);
