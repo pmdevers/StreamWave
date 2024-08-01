@@ -58,11 +58,4 @@ public interface IAggregateBuilder<TState, TId>
     /// <param name="message">The validation message to be returned if the rule fails.</param>
     /// <returns>The current instance of <see cref="IAggregateBuilder{TState, TId}"/>.</returns>
     IAggregateBuilder<TState, TId> WithValidator(Func<TState, bool> rule, string message);
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="serviceProvider"></param>
-    /// <returns></returns>
-    IAggregate<TState, TId> Build(IServiceProvider serviceProvider);
 }

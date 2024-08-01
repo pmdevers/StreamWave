@@ -40,7 +40,7 @@ public class StorageRegistration
 
         var manager = provider.GetRequiredService<IAggregateManager<TestState, Guid>>();
 
-        var aggregate = await manager.Create();
+        var aggregate = manager.Create();
 
         await aggregate.ApplyAsync(new TestEvent("test"));
 
@@ -71,8 +71,8 @@ public class StorageRegistration
         var provider = services.BuildServiceProvider();
         var manager = provider.GetRequiredService<IAggregateManager<TestState, Guid>>();
 
-        var aggregate = await manager.Create();
-        var aggregate1 = await manager.Create();
+        var aggregate = manager.Create();
+        var aggregate1 = manager.Create();
 
         await aggregate.ApplyAsync(new TestEvent("Aggregate 0"));
         await aggregate1.ApplyAsync(new TestEvent("Aggregate 1"));

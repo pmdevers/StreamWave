@@ -118,7 +118,7 @@ public class Aggregate<TState, TId>
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    public async Task LoadAsync(TId id)
+    internal async Task LoadAsync(TId id)
     {
         _stream = _loader(id) ?? EventStream.Create(id);
         await UpdateState();
@@ -128,7 +128,7 @@ public class Aggregate<TState, TId>
     /// Saves the current state of the aggregate, updating the event stream.
     /// </summary>
     /// <returns></returns>
-    public async Task SaveAsync()
+    internal async Task SaveAsync()
     {
         _stream = await _saver(this);
         await UpdateState();

@@ -24,7 +24,7 @@ internal class AggregateBuilder<TState, TId> : IAggregateBuilder<TState, TId>
         return this;
     }
 
-    public IAggregate<TState, TId> Build(IServiceProvider serviceProvider)
+    public Aggregate<TState, TId> Build(IServiceProvider serviceProvider)
     {
         var applier = _applier?.Invoke(serviceProvider) ?? AggregateBuilderDefaults.DefaultApplier(_events);
         var validator = _validator?.Invoke(serviceProvider) ?? AggregateBuilderDefaults.DefaultValidator(_rules);

@@ -20,7 +20,7 @@ public static class ServiceCollectionExtensions
         where TState : IAggregateState<TId>
     {
         var builder = new AggregateBuilder<TState, TId>(initialState);
-        services.AddSingleton<IAggregateBuilder<TState, TId>>(builder);
+        services.AddSingleton(builder);
         services.AddScoped<IAggregateManager<TState, TId>, AggregateManager<TState, TId>>();
         return builder;
     }
