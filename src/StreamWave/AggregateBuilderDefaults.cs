@@ -7,16 +7,22 @@ internal static class AggregateBuilderDefaults
             ? applier(state, e)
             : state;
 
+    public static ApplyEventDelegate<TState> DefaultApplier<TState>()
+        => (state, _) => state;
+
     public static ValidateStateDelegate<TState> DefaultValidator<TState>(List<ValidationRule<TState>> rules) =>
         (state) => rules.Where(x => x.Rule(state))
                          .Select(x => new ValidationMessage(x.Message))
                          .ToArray();
 
-    public static LoadEventStreamDelegate<TId> DefaultLoader<TId>(EventRecord[]? events = null)
-        => (streamId) => EventStream.Create(streamId, events);
+    public static ValidateStateDelegate<TState> DefaultValidator<TState>() =>
+       (_) => [];
 
+    public static LoadEventStreamDelegate<TId> DefaultLoader<TId>(IEnumerable<EventRecord>? events = null)
+        => (_) => Task.FromResult<IEventStream>(EventStream.Create(events));
+    
     public static SaveAggregateDelegate<TState, TId> DefaultSaver<TState, TId>()
-        => (aggregate) => Task.FromResult(EventStream.Create(aggregate.Stream.Id, aggregate.Stream.GetUncommittedEvents()));
+        => (aggregate) => Task.FromResult(aggregate.Stream.Commit());
 }
 
 

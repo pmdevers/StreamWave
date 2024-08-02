@@ -53,7 +53,7 @@ internal class Store<TState, TId>(DbContext context, IEventSerializer serializer
 {
     private readonly IEventSerializer _serializer = serializer;
 
-    public async Task<IEventStream<TId>> SaveAsync(IAggregate<TState, TId> aggregate)
+    public async Task<IEventStream> SaveAsync(IAggregate<TState, TId> aggregate)
     {
         if (!aggregate.Stream.HasUncommittedChanges)
         {
@@ -61,7 +61,7 @@ internal class Store<TState, TId>(DbContext context, IEventSerializer serializer
         }
 
         SaveState(aggregate.State);
-        SaveEvents(aggregate.Stream);
+        SaveEvents(aggregate.Id, aggregate.Stream);
 
         await context.SaveChangesAsync();
 
@@ -74,7 +74,7 @@ internal class Store<TState, TId>(DbContext context, IEventSerializer serializer
         context.Add(state);
     }
 
-    private void SaveEvents(IEventStream<TId> stream)
+    private void SaveEvents(TId id, IEventStream stream)
     {
         var events = stream.GetUncommittedEvents();
 
@@ -85,7 +85,7 @@ internal class Store<TState, TId>(DbContext context, IEventSerializer serializer
             version++;
             context.Add(new PersistedEvent<TId>(
                Guid.NewGuid(),
-               stream.Id,
+               id,
                version,
                e.EventType.AssemblyQualifiedName ?? string.Empty,
                _serializer.Serialize(e.Event, e.EventType),
@@ -94,14 +94,14 @@ internal class Store<TState, TId>(DbContext context, IEventSerializer serializer
         }
     }
 
-    public IEventStream<TId> LoadStreamAsync(TId id)
+    public Task<IEventStream> LoadStreamAsync(TId id)
     {
         var events = context.Set<PersistedEvent<TId>>()
             .Where(x => x.StreamId.Equals(id))
             .OrderBy(x => x.Version)
             .Select(x => GetEvent(x));
 
-        return EventStream.Create(id, events);
+        return Task.FromResult<IEventStream>(EventStream.Create(events));
     }
 
     private EventRecord GetEvent(PersistedEvent<TId> x)

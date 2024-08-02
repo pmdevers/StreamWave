@@ -15,7 +15,7 @@ public class StorageRegistration
         services.AddSingleton(JsonSerializerOptions.Default);
         services.AddScoped<IEventSerializer, DefaultSerializer>();
 
-        services.AddAggregate<TestState, Guid>(() => new())
+        services.AddAggregate<TestState, Guid>((id) => new() { Id = id })
             .WithStreamLoader((s) =>
                   (id) =>
                   {
@@ -40,13 +40,13 @@ public class StorageRegistration
 
         var manager = provider.GetRequiredService<IAggregateManager<TestState, Guid>>();
 
-        var aggregate = manager.Create();
+        var aggregate = manager.Create(Guid.NewGuid());
 
         await aggregate.ApplyAsync(new TestEvent("test"));
 
         await manager.SaveAsync(aggregate);
 
-        await manager.LoadAsync(aggregate.Stream.Id);
+        await manager.LoadAsync(aggregate.Id);
 
         aggregate.Should().NotBeNull();
     }
@@ -60,7 +60,7 @@ public class StorageRegistration
         services.AddSingleton(JsonSerializerOptions.Default);
         services.AddScoped<IEventSerializer, DefaultSerializer>();
 
-        services.AddAggregate<TestState, Guid>(() => new TestState() {  Id = Guid.NewGuid() })
+        services.AddAggregate<TestState, Guid>((id) => new TestState() {  Id = id })
             .WithEntityFramework<TestContext, TestState, Guid>()
             .WithApplier<TestEvent>((s, e) =>
             {
@@ -71,8 +71,8 @@ public class StorageRegistration
         var provider = services.BuildServiceProvider();
         var manager = provider.GetRequiredService<IAggregateManager<TestState, Guid>>();
 
-        var aggregate = manager.Create();
-        var aggregate1 = manager.Create();
+        var aggregate = manager.Create(Guid.NewGuid());
+        var aggregate1 = manager.Create(Guid.NewGuid());
 
         await aggregate.ApplyAsync(new TestEvent("Aggregate 0"));
         await aggregate1.ApplyAsync(new TestEvent("Aggregate 1"));
@@ -80,7 +80,7 @@ public class StorageRegistration
         await manager.SaveAsync(aggregate1);
         await manager.SaveAsync(aggregate);
 
-        aggregate = await manager.LoadAsync(aggregate1.Stream.Id);
+        aggregate = await manager.LoadAsync(aggregate1.Id);
 
         aggregate.Should().NotBeNull();
         aggregate.State.Id.Should().Be(aggregate1.State.Id);
@@ -102,7 +102,7 @@ public class TestContext(DbContextOptions<TestContext> options) : DbContext(opti
 
 public record TestEvent(string Field);
 
-public class TestState : IAggregateState<Guid>
+public class TestState
 { 
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Test { get; set; } = string.Empty;

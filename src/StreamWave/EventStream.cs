@@ -1,29 +1,12 @@
 ﻿using System.Collections;
 
 namespace StreamWave;
-/// <summary>
-/// Provides methods to create event streams for aggregates.
-/// </summary>
-public static class EventStream
-{
-    /// <summary>
-    /// Creates a new event stream for a given identifier and optionally includes initial events.
-    /// </summary>
-    /// <typeparam name="TId">The type of the identifier for the event stream.</typeparam>
-    /// <param name="streamId">The identifier for the event stream.</param>
-    /// <param name="events">An optional array of initial events.</param>
-    /// <returns>An instance of <see cref="IEventStream{TId}"/>.</returns>
-    public static IEventStream<TId> Create<TId>(TId streamId, IEnumerable<EventRecord>? events = null)
-        => new EventStream<TId>(streamId, events);
-}
 
 /// <summary>
 /// Represents an event stream for managing events in an event-sourced system.
 /// </summary>
-/// <typeparam name="TId">The type of the identifier for the event stream.</typeparam>
-/// <param name="streamId">The identifier for the event stream.</param>
 /// <param name="events">An optional array of initial events.</param>
-public class EventStream<TId>(TId streamId, IEnumerable<EventRecord>? events) : IEventStream<TId>
+public class EventStream(IEnumerable<EventRecord>? events) : IEventStream
 {
     private readonly IEnumerable<EventRecord> _events = events ?? [];
     private readonly List<EventRecord> _uncommitted = [];
@@ -31,9 +14,12 @@ public class EventStream<TId>(TId streamId, IEnumerable<EventRecord>? events) : 
     private DateTimeOffset? _LastModifiedOn = null;
 
     /// <summary>
-    /// Gets the identifier for the event stream.
+    /// Creates a new event stream for a given identifier and optionally includes initial events.
     /// </summary>
-    public TId Id { get; } = streamId;
+    /// <param name="events">An optional array of initial events.</param>
+    /// <returns>An instance of <see cref="IEventStream"/>.</returns>
+    public static EventStream Create(IEnumerable<EventRecord>? events = null)
+        => new(events);
 
     /// <summary>
     /// Indicates whether there are uncommitted changes in the event stream.
@@ -76,15 +62,15 @@ public class EventStream<TId>(TId streamId, IEnumerable<EventRecord>? events) : 
     /// <summary>
     /// Commits the uncommitted events, returning a new event stream with the changes.
     /// </summary>
-    /// <returns>A new instance of <see cref="IEventStream{TId}"/> with the committed events.</returns>
-    public IEventStream<TId> Commit() => EventStream.Create(Id, [.. _events, .. _uncommitted]);
+    /// <returns>A new instance of <see cref="IEventStream"/> with the committed events.</returns>
+    public IEventStream Commit() => EventStream.Create([.. _events, .. _uncommitted]);
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async IAsyncEnumerator<EventRecord> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    public async IAsyncEnumerator<object> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
         foreach (var e in _events)
         {
@@ -94,7 +80,7 @@ public class EventStream<TId>(TId streamId, IEnumerable<EventRecord>? events) : 
             }
             _LastModifiedOn = e.OccurredOn;
             Version++;
-            yield return e;
+            yield return e.Event;
             await Task.Yield(); // Ensure it's asynchronous
         }
     }

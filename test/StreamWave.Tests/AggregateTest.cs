@@ -10,13 +10,12 @@ public class AggregateTest
         public void Should_have_default_values()
         {
             var aggregate = new Aggregate<TestState, Guid>(
-                creator: () => new(),
+                Guid.NewGuid(),
+                new(),
+                EventStream.Create(),
                 applier: (s, _) => s,
-                validator: _ => [],
-                loader: id => {
-                    return EventStream.Create(Guid.Empty);
-                },
-                saver: s => Task.FromResult(s.Stream.Commit()));
+                validator: _ => []
+             );
 
             aggregate.Should().NotBeNull();
             aggregate.Stream.Should().NotBeNull();
@@ -24,40 +23,6 @@ public class AggregateTest
             aggregate.IsValid.Should().BeTrue();
 
             aggregate.Messages.Should().NotBeNull().And.HaveCount(0);
-        }
-    }
-
-    public class LoadAsync
-    {
-        [Fact]
-        public async Task should_call_loader_with_same_id()
-        { 
-            var guid = Guid.NewGuid();
-            var loader = Substitute.For<LoadEventStreamDelegate<Guid>>();
-
-            loader(Arg.Is(guid))
-                .Returns(EventStream.Create(guid));
-                
-            
-            var aggregate = new Aggregate<TestState, Guid>(
-                creator: () => new(), 
-                applier: (s, _) => s, 
-                validator: _ => [], 
-                loader: (id) => loader(id), 
-                saver: s => Task.FromResult(s.Stream.Commit()));
-
-            await aggregate.LoadAsync(guid);
-
-
-            _ = loader.Received(1);
-
-            aggregate.Should().NotBeNull();
-            aggregate.Stream.Should().NotBeNull();
-            aggregate.State.Should().NotBeNull();
-            aggregate.IsValid.Should().BeTrue();
-            
-            aggregate.Messages.Should().NotBeNull().And.HaveCount(0);
-            aggregate.Stream.Id.Should().Be(guid);
         }
     }
 
@@ -67,17 +32,18 @@ public class AggregateTest
         public async Task should_call_applier()
         {
             var applier = Substitute.For<ApplyEventDelegate<TestState>>();
-                
+
             applier(Arg.Any<TestState>(), Arg.Any<object>())
                 .ReturnsForAnyArgs(new TestState { Property = "test" });
-            
+
 
             var aggregate = new Aggregate<TestState, Guid>(
-                creator: () => new(),
+                Guid.NewGuid(),
+                new(),
+                EventStream.Create(),
                 applier: applier,
-                validator: AggregateBuilderDefaults.DefaultValidator<TestState>([]),
-                loader: AggregateBuilderDefaults.DefaultLoader<Guid>(),
-                saver: s => Task.FromResult(s.Stream.Commit()));
+                validator: AggregateBuilderDefaults.DefaultValidator<TestState>([])
+             );
 
             await aggregate.ApplyAsync(new EmptyEvent());
 
@@ -87,49 +53,25 @@ public class AggregateTest
             aggregate.Stream.ExpectedVersion.Should().Be(1);
         }
     }
-    
-    public class SaveAsync
-    {
-        [Fact]
-        public async Task should_call_saver()
-        {
-            var aggregate = new Aggregate<TestState, Guid>(
-                creator: () => new(),
-                applier: (s, _) => s,
-                validator: AggregateBuilderDefaults.DefaultValidator<TestState>([]),
-                loader: AggregateBuilderDefaults.DefaultLoader<Guid>(),
-                saver: s => Task.FromResult(s.Stream.Commit()));
-
-            aggregate.Stream.Version.Should().Be(0);
-            aggregate.Stream.ExpectedVersion.Should().Be(0);
-
-            await aggregate.ApplyAsync(new EmptyEvent());
-
-            await aggregate.SaveAsync();
-
-            aggregate.IsValid.Should().BeTrue();
-            aggregate.Stream.Version.Should().Be(1);
-            aggregate.Stream.ExpectedVersion.Should().Be(1);
-        }
-    }
 
     public class State
     {
         [Fact]
         public async Task should_call_applier()
         {
-            var loader = Substitute.For<ApplyEventDelegate<TestState>>();
+            var applier = Substitute.For<ApplyEventDelegate<TestState>>();
 
-            loader(Arg.Any<TestState>(), Arg.Any<object>())
+            applier(Arg.Any<TestState>(), Arg.Any<object>())
                 .Returns(new TestState());
 
 
             var aggregate = new Aggregate<TestState, Guid>(
-               creator: () => new(),
-               applier: loader,
-               validator: AggregateBuilderDefaults.DefaultValidator<TestState>([]),
-               loader: AggregateBuilderDefaults.DefaultLoader<Guid>(),
-               saver: s => Task.FromResult(s.Stream.Commit()));
+               Guid.NewGuid(),
+               new(),
+               EventStream.Create(),
+               applier: applier,
+               validator: AggregateBuilderDefaults.DefaultValidator<TestState>([])
+            );
 
             aggregate.Stream.Version.Should().Be(0);
             aggregate.Stream.ExpectedVersion.Should().Be(0);
@@ -141,7 +83,7 @@ public class AggregateTest
             aggregate.Stream.ExpectedVersion.Should().Be(1);
 
 #pragma warning disable S2970 // Assertions should be complete
-            loader.Received(1);
+            applier.Received(1);
 #pragma warning restore S2970 // Assertions should be complete
 
         }
@@ -158,11 +100,12 @@ public class AggregateTest
                 .ReturnsForAnyArgs([]);
 
             var aggregate = new Aggregate<TestState, Guid>(
-                creator: () => new(),
+                Guid.NewGuid(),
+                new(),
+                EventStream.Create(),
                 applier: (s, _) => s,
-                validator: validator,
-                loader: AggregateBuilderDefaults.DefaultLoader<Guid>(),
-                saver: s => Task.FromResult(s.Stream.Commit()));
+                validator: validator
+            );
 
             await aggregate.ApplyAsync(new EmptyEvent());
 
@@ -183,11 +126,12 @@ public class AggregateTest
                 .ReturnsForAnyArgs([new ValidationMessage("Pffff")]);
 
             var aggregate = new Aggregate<TestState, Guid>(
-                creator: () => new(),
+                Guid.NewGuid(),
+                new(),
+                EventStream.Create(),
                 applier: (s, _) => s,
-                validator: validator,
-                loader: AggregateBuilderDefaults.DefaultLoader<Guid>(),
-                saver: s => Task.FromResult(s.Stream.Commit()));
+                validator: validator
+            );
 
             await aggregate.ApplyAsync(new EmptyEvent());
 
@@ -203,33 +147,26 @@ public class AggregateTest
         [Fact]
         public async Task should_return_loaded_stream()
         {
-            var stream = EventStream.Create(Guid.NewGuid(), [
-                new(new EmptyEvent(), typeof(EmptyEvent), TimeProvider.System.GetUtcNow())
-                ]);
-            var loader = Substitute.For<LoadEventStreamDelegate<Guid>>();
-
-            loader(Arg.Any<Guid>()).Returns(stream);
-
 
             var aggregate = new Aggregate<TestState, Guid>(
-               creator: () => new(),
+               Guid.NewGuid(),
+               new(),
+               EventStream.Create([
+                 new(new EmptyEvent(), typeof(EmptyEvent), TimeProvider.System.GetUtcNow())
+               ]),
                applier: (s, _) => s,
-               validator: AggregateBuilderDefaults.DefaultValidator<TestState>([]),
-               loader: loader,
-               saver: s => Task.FromResult(s.Stream.Commit()));
+               validator: AggregateBuilderDefaults.DefaultValidator<TestState>([])
+            );
 
             aggregate.Stream.Version.Should().Be(0);
             aggregate.Stream.ExpectedVersion.Should().Be(0);
 
             await aggregate.ApplyAsync(new EmptyEvent());
 
-            await aggregate.SaveAsync();
-
             aggregate.IsValid.Should().BeTrue();
             aggregate.Stream.Version.Should().Be(1);
-            aggregate.Stream.ExpectedVersion.Should().Be(1);
+            aggregate.Stream.ExpectedVersion.Should().Be(2);
 
-            loader.ReceivedCalls();
         }
     }
 }

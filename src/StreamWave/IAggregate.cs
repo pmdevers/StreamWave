@@ -5,8 +5,13 @@
 /// </summary>
 /// <typeparam name="TState">The type of the state associated with the aggregate.</typeparam>
 /// <typeparam name="TId">The type of the identifier for the aggregate.</typeparam>
-public interface IAggregate<out TState, TId>
+public interface IAggregate<out TState, out TId>
 {
+    /// <summary>
+    /// The Identifier of the Aggregate
+    /// </summary>
+    TId Id { get; }
+
     /// <summary>
     /// Gets the current state of the aggregate.
     /// </summary>
@@ -15,7 +20,7 @@ public interface IAggregate<out TState, TId>
     /// <summary>
     /// Gets the event stream associated with the aggregate, containing events that represent state changes.
     /// </summary>
-    IEventStream<TId> Stream { get; }
+    IEventStream Stream { get; }
 
     /// <summary>
     /// Gets the validation messages for the current state of the aggregate.
