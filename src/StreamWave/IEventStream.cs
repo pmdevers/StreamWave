@@ -35,6 +35,12 @@ public interface IEventStream : IAsyncEnumerable<object>
     /// </summary>
     /// <returns>An array of uncommitted events.</returns>
     EventRecord[] GetUncommittedEvents();
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    EventRecord[] GetCommittedEvents();
 
     /// <summary>
     /// Commits the uncommitted events to the event stream, returning a new event stream instance with these events.

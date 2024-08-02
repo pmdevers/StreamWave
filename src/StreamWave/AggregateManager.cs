@@ -37,6 +37,6 @@ internal class AggregateManager<TState, TId>(
         await saver(aggregate);
     }
 
-    private Aggregate<TState, TId> Create(TId id, TState state, IEventStream stream)
+    private Aggregate<TState, TId> Create(TId id, TState state, EventStream stream)
         => new(id, state, stream, applier, validator);
 }

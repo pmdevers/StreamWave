@@ -19,10 +19,14 @@ internal static class AggregateBuilderDefaults
        (_) => [];
 
     public static LoadEventStreamDelegate<TId> DefaultLoader<TId>(IEnumerable<EventRecord>? events = null)
-        => (_) => Task.FromResult<IEventStream>(EventStream.Create(events));
+        => (_) => Task.FromResult(EventStream.Create(events));
     
     public static SaveAggregateDelegate<TState, TId> DefaultSaver<TState, TId>()
-        => (aggregate) => Task.FromResult(aggregate.Stream.Commit());
+        => (aggregate) => {
+            var events = aggregate.Stream.GetUncommittedEvents();
+            var stream = EventStream.Create([.. events, .. aggregate.Stream.GetUncommittedEvents() ]);
+            return Task.FromResult(stream);
+        };
 }
 
 

@@ -60,6 +60,12 @@ public class EventStream(IEnumerable<EventRecord>? events) : IEventStream
     public EventRecord[] GetUncommittedEvents() => [.. _uncommitted];
 
     /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public EventRecord[] GetCommittedEvents() => [.. _events];
+
+    /// <summary>
     /// Commits the uncommitted events, returning a new event stream with the changes.
     /// </summary>
     /// <returns>A new instance of <see cref="IEventStream"/> with the committed events.</returns>

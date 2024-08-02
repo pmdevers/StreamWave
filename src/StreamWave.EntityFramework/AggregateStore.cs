@@ -53,11 +53,11 @@ internal class Store<TState, TId>(DbContext context, IEventSerializer serializer
 {
     private readonly IEventSerializer _serializer = serializer;
 
-    public async Task<IEventStream> SaveAsync(IAggregate<TState, TId> aggregate)
+    public async Task<EventStream> SaveAsync(IAggregate<TState, TId> aggregate)
     {
         if (!aggregate.Stream.HasUncommittedChanges)
         {
-            return aggregate.Stream;
+            return EventStream.Create(aggregate.Stream.GetCommittedEvents());
         }
 
         SaveState(aggregate.State);
@@ -65,7 +65,9 @@ internal class Store<TState, TId>(DbContext context, IEventSerializer serializer
 
         await context.SaveChangesAsync();
 
-        return aggregate.Stream.Commit();
+        var events = aggregate.Stream.GetUncommittedEvents();
+        var stream = EventStream.Create([.. events, .. aggregate.Stream.GetUncommittedEvents()]);
+        return stream;
     }
 
     private void SaveState(TState state)
@@ -94,14 +96,14 @@ internal class Store<TState, TId>(DbContext context, IEventSerializer serializer
         }
     }
 
-    public Task<IEventStream> LoadStreamAsync(TId id)
+    public Task<EventStream> LoadStreamAsync(TId id)
     {
         var events = context.Set<PersistedEvent<TId>>()
             .Where(x => x.StreamId.Equals(id))
             .OrderBy(x => x.Version)
             .Select(x => GetEvent(x));
 
-        return Task.FromResult<IEventStream>(EventStream.Create(events));
+        return Task.FromResult(EventStream.Create(events));
     }
 
     private EventRecord GetEvent(PersistedEvent<TId> x)
