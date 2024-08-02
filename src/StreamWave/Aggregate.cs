@@ -28,7 +28,7 @@ public delegate TState ApplyEventDelegate<TState>(TState state, object e);
 /// <param name="id">The identifier of the aggregate.</param>
 /// <returns>A task representing the asynchronous operation, with the loaded event stream as the result. 
 /// The result can be null if the event stream does not exist.</returns>
-public delegate Task<EventStream> LoadEventStreamDelegate<in TId>(TId id);
+public delegate Task<IAsyncEnumerable<object>> LoadEventStreamDelegate<in TId>(TId id);
 
 /// <summary>
 /// Delegate for saving the aggregate and returning the updated event stream.
@@ -37,7 +37,7 @@ public delegate Task<EventStream> LoadEventStreamDelegate<in TId>(TId id);
 /// <typeparam name="TId">The type of the identifier used for the aggregate.</typeparam>
 /// <param name="aggregate">The aggregate to be saved.</param>
 /// <returns>A task representing the asynchronous operation, with the updated event stream as the result.</returns>
-public delegate Task<EventStream> SaveAggregateDelegate<TState, TId>(IAggregate<TState, TId> aggregate);
+public delegate Task<IAsyncEnumerable<object>> SaveAggregateDelegate<TState, TId>(IAggregate<TState, TId> aggregate);
 
 /// <summary>
 /// Delegate for validating the state of an aggregate.
@@ -52,24 +52,32 @@ internal class Aggregate<TState, TId>
 {
     private readonly ApplyEventDelegate<TState> _applier;
     private readonly ValidateStateDelegate<TState> _validator;
-    private readonly EventStream _eventStream;
+    private readonly IAsyncEnumerable<object> _events;
+    private readonly List<object> _newEvents = [];
+    private int _version;
 
     internal Aggregate(
         TId id,
         TState state,
-        EventStream stream,
+        IAsyncEnumerable<object> events,
         ApplyEventDelegate<TState> applier,
         ValidateStateDelegate<TState> validator
     )
     {
         _applier = applier;
         _validator = validator;
-        _eventStream = stream;
+        _events = events;
 
         Id = id;
         State = state;
 
-        Task.Run(async () => State = await _eventStream.AggregateAsync(State, (state, e) => _applier(state, e)));
+        var runner = Task.Run(async () => await _events.AggregateAsync(State, (state, e) => 
+        {
+            _version++;
+            return _applier(state, e);
+        }));
+
+        runner.Wait();
     }
 
     public TId Id { get; private set; }
@@ -80,14 +88,19 @@ internal class Aggregate<TState, TId>
 
     public bool IsValid => Messages.Length == 0;
 
-    public IEventStream Stream => _eventStream;
+    public int Version => _version;
+
+    public int ExpectedVersion => _version + _newEvents.Count;
 
     public Task ApplyAsync(object e)
     {
+        _newEvents.Add(e);
         State = _applier(State, e);
-        _eventStream.Append(e);
         return Task.CompletedTask;
     }
+
+    public IEnumerable<object> GetUncommitedEvents()
+        => _newEvents;
 }
 
 

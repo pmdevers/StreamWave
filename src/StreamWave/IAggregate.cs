@@ -18,11 +18,6 @@ public interface IAggregate<out TState, out TId>
     TState State { get; }
 
     /// <summary>
-    /// Gets the event stream associated with the aggregate, containing events that represent state changes.
-    /// </summary>
-    IEventStream Stream { get; }
-
-    /// <summary>
     /// Gets the validation messages for the current state of the aggregate.
     /// </summary>
     ValidationMessage[] Messages { get; }
@@ -33,9 +28,25 @@ public interface IAggregate<out TState, out TId>
     bool IsValid { get; }
 
     /// <summary>
+    /// 
+    /// </summary>
+    int Version { get; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    int ExpectedVersion { get; }
+
+    /// <summary>
     /// Applies a new event to the aggregate, updating its state asynchronously.
     /// </summary>
     /// <param name="e">The event to apply.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     Task ApplyAsync(object e);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    IEnumerable<object> GetUncommitedEvents();
 }

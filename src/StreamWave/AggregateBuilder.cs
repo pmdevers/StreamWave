@@ -13,7 +13,7 @@ internal class AggregateBuilder<TState, TId> : IAggregateBuilder<TState, TId>
     {
         Options = new AggregateMangerOptions<TState, TId>(creator);
     }
-    public IAggregateBuilder<TState, TId> WithEvents(EventRecord[] events)
+    public IAggregateBuilder<TState, TId> WithEvents(params object[] events)
     {
         Options.Loader = (_) => AggregateBuilderDefaults.DefaultLoader<TId>(events);
         return this;
@@ -22,12 +22,12 @@ internal class AggregateBuilder<TState, TId> : IAggregateBuilder<TState, TId>
     public AggregateManager<TState, TId> Build(IServiceProvider serviceProvider)
     {
         var creator = Options.Creator(serviceProvider);
-        var applier = Options.Applier(serviceProvider);
-        var validator = Options.Validator(serviceProvider);
+        var applier = Options.Applier(serviceProvider, _events);
+        var validator = Options.Validator(serviceProvider, _rules);
         var loader = Options.Loader(serviceProvider);
         var saver = Options.Saver(serviceProvider);
 
-         return new AggregateManager<TState, TId>(creator, applier, validator, loader, saver);
+        return new AggregateManager<TState, TId>(creator, applier, validator, loader, saver);
     }
 
     public IAggregateBuilder<TState, TId> WithSaver(Func<IServiceProvider, SaveAggregateDelegate<TState, TId>> saver)
@@ -42,7 +42,7 @@ internal class AggregateBuilder<TState, TId> : IAggregateBuilder<TState, TId>
         return this;
     }
 
-    public IAggregateBuilder<TState, TId> WithValidator(Func<IServiceProvider, ValidateStateDelegate<TState>> validator)
+    public IAggregateBuilder<TState, TId> WithValidator(Func<IServiceProvider, List<ValidationRule<TState>>, ValidateStateDelegate<TState>> validator)
     {
         Options.Validator = validator;
         return this;
@@ -54,7 +54,7 @@ internal class AggregateBuilder<TState, TId> : IAggregateBuilder<TState, TId>
         return this;
     }
 
-    public IAggregateBuilder<TState, TId> WithApplier(Func<IServiceProvider, ApplyEventDelegate<TState>> applier)
+    public IAggregateBuilder<TState, TId> WithApplier(Func<IServiceProvider, Dictionary<Type, ApplyEventDelegate<TState>>, ApplyEventDelegate<TState>> applier)
     {
         Options.Applier = applier;
         return this;

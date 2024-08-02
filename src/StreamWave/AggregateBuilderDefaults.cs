@@ -18,14 +18,12 @@ internal static class AggregateBuilderDefaults
     public static ValidateStateDelegate<TState> DefaultValidator<TState>() =>
        (_) => [];
 
-    public static LoadEventStreamDelegate<TId> DefaultLoader<TId>(IEnumerable<EventRecord>? events = null)
-        => (_) => Task.FromResult(EventStream.Create(events));
+    public static LoadEventStreamDelegate<TId> DefaultLoader<TId>(IEnumerable<object>? events = null)
+        => (_) => Task.FromResult((events ?? []).ToAsyncEnumerable());
     
     public static SaveAggregateDelegate<TState, TId> DefaultSaver<TState, TId>()
         => (aggregate) => {
-            var events = aggregate.Stream.GetUncommittedEvents();
-            var stream = EventStream.Create([.. events, .. aggregate.Stream.GetUncommittedEvents() ]);
-            return Task.FromResult(stream);
+            return Task.FromResult(aggregate.GetUncommitedEvents().ToAsyncEnumerable());
         };
 }
 

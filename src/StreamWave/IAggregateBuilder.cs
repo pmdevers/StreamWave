@@ -12,7 +12,7 @@ public interface IAggregateBuilder<TState, TId>
     /// </summary>
     /// <param name="events">An array of events to be applied to the aggregate.</param>
     /// <returns>The current instance of <see cref="IAggregateBuilder{TState, TId}"/>.</returns>
-    IAggregateBuilder<TState, TId> WithEvents(EventRecord[] events);
+    IAggregateBuilder<TState, TId> WithEvents(params object[] events);
 
     /// <summary>
     /// Configures the builder with a loader function for loading the event stream.
@@ -33,7 +33,7 @@ public interface IAggregateBuilder<TState, TId>
     /// </summary>
     /// <param name="applier">A function that provides the applier delegate, using the service provider.</param>
     /// <returns>The current instance of <see cref="IAggregateBuilder{TState, TId}"/>.</returns>
-    IAggregateBuilder<TState, TId> WithApplier(Func<IServiceProvider, ApplyEventDelegate<TState>> applier);
+    IAggregateBuilder<TState, TId> WithApplier(Func<IServiceProvider, Dictionary<Type, ApplyEventDelegate<TState>>, ApplyEventDelegate<TState>> applier);
 
     /// <summary>
     /// Configures the builder with an applier function for applying specific events to the aggregate's state.
@@ -49,7 +49,7 @@ public interface IAggregateBuilder<TState, TId>
     /// </summary>
     /// <param name="validator">A function that provides the validator delegate, using the service provider.</param>
     /// <returns>The current instance of <see cref="IAggregateBuilder{TState, TId}"/>.</returns>
-    IAggregateBuilder<TState, TId> WithValidator(Func<IServiceProvider, ValidateStateDelegate<TState>> validator);
+    IAggregateBuilder<TState, TId> WithValidator(Func<IServiceProvider, List<ValidationRule<TState>>, ValidateStateDelegate<TState>> validator);
 
     /// <summary>
     /// Configures the builder with a validation rule and message.

@@ -12,13 +12,12 @@ public class AggregateTest
             var aggregate = new Aggregate<TestState, Guid>(
                 Guid.NewGuid(),
                 new(),
-                EventStream.Create(),
+                new List<object>().ToAsyncEnumerable(),
                 applier: (s, _) => s,
                 validator: _ => []
              );
 
             aggregate.Should().NotBeNull();
-            aggregate.Stream.Should().NotBeNull();
             aggregate.State.Should().NotBeNull();
             aggregate.IsValid.Should().BeTrue();
 
@@ -40,7 +39,7 @@ public class AggregateTest
             var aggregate = new Aggregate<TestState, Guid>(
                 Guid.NewGuid(),
                 new(),
-                EventStream.Create(),
+                new List<object>().ToAsyncEnumerable(),
                 applier: applier,
                 validator: AggregateBuilderDefaults.DefaultValidator<TestState>([])
              );
@@ -49,8 +48,8 @@ public class AggregateTest
 
             aggregate.State.Property.Should().Be("test");
             aggregate.IsValid.Should().BeTrue();
-            aggregate.Stream.Version.Should().Be(0);
-            aggregate.Stream.ExpectedVersion.Should().Be(1);
+            aggregate.Version.Should().Be(0);
+            aggregate.ExpectedVersion.Should().Be(1);
         }
     }
 
@@ -68,19 +67,19 @@ public class AggregateTest
             var aggregate = new Aggregate<TestState, Guid>(
                Guid.NewGuid(),
                new(),
-               EventStream.Create(),
+               new List<object>().ToAsyncEnumerable(),
                applier: applier,
                validator: AggregateBuilderDefaults.DefaultValidator<TestState>([])
             );
 
-            aggregate.Stream.Version.Should().Be(0);
-            aggregate.Stream.ExpectedVersion.Should().Be(0);
+            aggregate.Version.Should().Be(0);
+            aggregate.ExpectedVersion.Should().Be(0);
 
             await aggregate.ApplyAsync(new EmptyEvent());
 
             aggregate.IsValid.Should().BeTrue();
-            aggregate.Stream.Version.Should().Be(0);
-            aggregate.Stream.ExpectedVersion.Should().Be(1);
+            aggregate.Version.Should().Be(0);
+            aggregate.ExpectedVersion.Should().Be(1);
 
 #pragma warning disable S2970 // Assertions should be complete
             applier.Received(1);
@@ -102,7 +101,7 @@ public class AggregateTest
             var aggregate = new Aggregate<TestState, Guid>(
                 Guid.NewGuid(),
                 new(),
-                EventStream.Create(),
+                new List<object>().ToAsyncEnumerable(),
                 applier: (s, _) => s,
                 validator: validator
             );
@@ -128,7 +127,7 @@ public class AggregateTest
             var aggregate = new Aggregate<TestState, Guid>(
                 Guid.NewGuid(),
                 new(),
-                EventStream.Create(),
+                new List<object>().ToAsyncEnumerable(),
                 applier: (s, _) => s,
                 validator: validator
             );
@@ -151,21 +150,19 @@ public class AggregateTest
             var aggregate = new Aggregate<TestState, Guid>(
                Guid.NewGuid(),
                new(),
-               EventStream.Create([
-                 new(new EmptyEvent(), typeof(EmptyEvent), TimeProvider.System.GetUtcNow())
-               ]),
+               new List<object>() { new EmptyEvent() }.ToAsyncEnumerable(),
                applier: (s, _) => s,
                validator: AggregateBuilderDefaults.DefaultValidator<TestState>([])
             );
 
-            aggregate.Stream.Version.Should().Be(0);
-            aggregate.Stream.ExpectedVersion.Should().Be(0);
+            aggregate.Version.Should().Be(1);
+            aggregate.ExpectedVersion.Should().Be(1);
 
             await aggregate.ApplyAsync(new EmptyEvent());
 
             aggregate.IsValid.Should().BeTrue();
-            aggregate.Stream.Version.Should().Be(1);
-            aggregate.Stream.ExpectedVersion.Should().Be(2);
+            aggregate.Version.Should().Be(1);
+            aggregate.ExpectedVersion.Should().Be(2);
 
         }
     }
