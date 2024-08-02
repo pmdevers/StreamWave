@@ -41,7 +41,7 @@ public interface IAggregateBuilder<TState, TId>
     /// <typeparam name="TEvent">The type of the event to be applied.</typeparam>
     /// <param name="applier">A function that applies the specific event type to the state.</param>
     /// <returns>The current instance of <see cref="IAggregateBuilder{TState, TId}"/>.</returns>
-    IAggregateBuilder<TState, TId> WithApplier<TEvent>(Func<TState, TEvent, Task<TState>> applier)
+    IAggregateBuilder<TState, TId> WithApplier<TEvent>(Func<TState, TEvent, TState> applier)
         where TEvent : notnull;
 
     /// <summary>
@@ -58,11 +58,4 @@ public interface IAggregateBuilder<TState, TId>
     /// <param name="message">The validation message to be returned if the rule fails.</param>
     /// <returns>The current instance of <see cref="IAggregateBuilder{TState, TId}"/>.</returns>
     IAggregateBuilder<TState, TId> WithValidator(Func<TState, bool> rule, string message);
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="serviceProvider"></param>
-    /// <returns></returns>
-    IAggregate<TState, TId> Build(IServiceProvider serviceProvider);
 }

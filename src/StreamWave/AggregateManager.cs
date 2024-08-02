@@ -3,13 +3,13 @@
 namespace StreamWave;
 
 internal class AggregateManager<TState, TId>(
-    IAggregateBuilder<TState, TId> builder, IServiceProvider serviceProvider) : IAggregateManager<TState, TId>
+    AggregateBuilder<TState, TId> builder, IServiceProvider serviceProvider) : IAggregateManager<TState, TId>
     where TState : IAggregateState<TId>
 {
-    public Task<IAggregate<TState, TId>> Create()
+    public IAggregate<TState, TId> Create()
     {
         var aggregate = builder.Build(serviceProvider);
-        return Task.FromResult(aggregate);
+        return aggregate;
     }
 
     public async Task<IAggregate<TState, TId>> LoadAsync(TId id)
@@ -19,8 +19,11 @@ internal class AggregateManager<TState, TId>(
         return aggregate;
     }
 
-    public Task SaveAsync(IAggregate<TState, TId> aggregate)
+    public async Task SaveAsync(IAggregate<TState, TId> aggregate)
     {
-        return aggregate.SaveAsync();
+        if(aggregate is Aggregate<TState, TId> a)
+        {
+            await a.SaveAsync();
+        }
     }
 }

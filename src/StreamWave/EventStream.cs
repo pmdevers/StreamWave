@@ -13,7 +13,7 @@ public static class EventStream
     /// <param name="streamId">The identifier for the event stream.</param>
     /// <param name="events">An optional array of initial events.</param>
     /// <returns>An instance of <see cref="IEventStream{TId}"/>.</returns>
-    public static IEventStream<TId> Create<TId>(TId streamId, EventRecord[]? events = null)
+    public static IEventStream<TId> Create<TId>(TId streamId, IEnumerable<EventRecord>? events = null)
         => new EventStream<TId>(streamId, events);
 }
 
@@ -23,10 +23,12 @@ public static class EventStream
 /// <typeparam name="TId">The type of the identifier for the event stream.</typeparam>
 /// <param name="streamId">The identifier for the event stream.</param>
 /// <param name="events">An optional array of initial events.</param>
-public class EventStream<TId>(TId streamId, EventRecord[]? events = null) : IEventStream<TId>
+public class EventStream<TId>(TId streamId, IEnumerable<EventRecord>? events) : IEventStream<TId>
 {
-    private readonly EventRecord[] _events = events ?? [];
+    private readonly IEnumerable<EventRecord> _events = events ?? [];
     private readonly List<EventRecord> _uncommitted = [];
+    private DateTimeOffset? _createdOn = null;
+    private DateTimeOffset? _LastModifiedOn = null;
 
     /// <summary>
     /// Gets the identifier for the event stream.
@@ -41,31 +43,22 @@ public class EventStream<TId>(TId streamId, EventRecord[]? events = null) : IEve
     /// <summary>
     /// Gets the version of the event stream, based on the number of committed events.
     /// </summary>
-    public int Version => _events.Length;
+    public int Version { get; private set; }
 
     /// <summary>
     /// Gets the expected version of the event stream, including uncommitted events.
     /// </summary>
-    public int ExpectedVersion => _events.Length + _uncommitted.Count;
+    public int ExpectedVersion => Version + _uncommitted.Count;
 
     /// <summary>
     /// Gets the timestamp of when the first event was created, if available.
     /// </summary>
-    public DateTimeOffset? CreatedOn => _events.Length != 0
-        ? _events.FirstOrDefault()?.OccurredOn
-        : _uncommitted.FirstOrDefault()?.OccurredOn;
+    public DateTimeOffset? CreatedOn => _createdOn ?? TimeProvider.System.GetUtcNow();
 
     /// <summary>
     /// Gets the timestamp of when the last event was modified, if available.
     /// </summary>
-    public DateTimeOffset? LastModifiedOn => _uncommitted.Count != 0
-        ? _uncommitted.LastOrDefault()?.OccurredOn
-        : _events.LastOrDefault()?.OccurredOn;
-
-    /// <summary>
-    /// Gets the total count of committed events in the event stream.
-    /// </summary>
-    public int Count => _events.Length;
+    public DateTimeOffset? LastModifiedOn => _LastModifiedOn ?? TimeProvider.System.GetUtcNow();
 
     /// <summary>
     /// Appends a new event to the uncommitted events list.
@@ -73,18 +66,6 @@ public class EventStream<TId>(TId streamId, EventRecord[]? events = null) : IEve
     /// <param name="e">The event to be appended.</param>
     public void Append(object e)
         => _uncommitted.Add(EventRecord.Create(e));
-
-    /// <summary>
-    /// Returns an enumerator that iterates through the committed events.
-    /// </summary>
-    /// <returns>An enumerator for the committed events.</returns>
-    public IEnumerator<EventRecord> GetEnumerator() => _events.ToList().GetEnumerator();
-
-    /// <summary>
-    /// Returns an enumerator that iterates through the committed events (non-generic).
-    /// </summary>
-    /// <returns>An enumerator for the committed events.</returns>
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     /// <summary>
     /// Gets the list of uncommitted events.
@@ -97,6 +78,26 @@ public class EventStream<TId>(TId streamId, EventRecord[]? events = null) : IEve
     /// </summary>
     /// <returns>A new instance of <see cref="IEventStream{TId}"/> with the committed events.</returns>
     public IEventStream<TId> Commit() => EventStream.Create(Id, [.. _events, .. _uncommitted]);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async IAsyncEnumerator<EventRecord> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    {
+        foreach (var e in _events)
+        {
+            if(_createdOn == null)
+            {
+                _createdOn = e.OccurredOn;
+            }
+            _LastModifiedOn = e.OccurredOn;
+            Version++;
+            yield return e;
+            await Task.Yield(); // Ensure it's asynchronous
+        }
+    }
 }
 
 

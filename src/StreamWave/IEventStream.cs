@@ -4,7 +4,7 @@
 /// Represents an event stream, which is a sequence of events that captures changes to an aggregate's state.
 /// </summary>
 /// <typeparam name="TId">The type of the identifier for the event stream.</typeparam>
-public interface IEventStream<TId> : IReadOnlyCollection<EventRecord>
+public interface IEventStream<TId> : IAsyncEnumerable<EventRecord>
 {
     /// <summary>
     /// Gets the identifier of the event stream.

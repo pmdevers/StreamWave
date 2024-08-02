@@ -11,10 +11,10 @@ public class AggregateTest
         {
             var aggregate = new Aggregate<TestState, Guid>(
                 creator: () => new(),
-                applier: (s, _) => Task.FromResult(s),
+                applier: (s, _) => s,
                 validator: _ => [],
                 loader: id => {
-                    return Task.FromResult<IEventStream<Guid>?>(EventStream.Create(Guid.Empty));
+                    return EventStream.Create(Guid.Empty);
                 },
                 saver: s => Task.FromResult(s.Stream.Commit()));
 
@@ -36,12 +36,12 @@ public class AggregateTest
             var loader = Substitute.For<LoadEventStreamDelegate<Guid>>();
 
             loader(Arg.Is(guid))
-                .Returns(Task.FromResult<IEventStream<Guid>?>(EventStream.Create(guid)));
+                .Returns(EventStream.Create(guid));
                 
             
             var aggregate = new Aggregate<TestState, Guid>(
                 creator: () => new(), 
-                applier: (s, _) => Task.FromResult(s), 
+                applier: (s, _) => s, 
                 validator: _ => [], 
                 loader: (id) => loader(id), 
                 saver: s => Task.FromResult(s.Stream.Commit()));
@@ -95,7 +95,7 @@ public class AggregateTest
         {
             var aggregate = new Aggregate<TestState, Guid>(
                 creator: () => new(),
-                applier: (s, _) => Task.FromResult(s),
+                applier: (s, _) => s,
                 validator: AggregateBuilderDefaults.DefaultValidator<TestState>([]),
                 loader: AggregateBuilderDefaults.DefaultLoader<Guid>(),
                 saver: s => Task.FromResult(s.Stream.Commit()));
@@ -159,7 +159,7 @@ public class AggregateTest
 
             var aggregate = new Aggregate<TestState, Guid>(
                 creator: () => new(),
-                applier: (s, _) => Task.FromResult(s),
+                applier: (s, _) => s,
                 validator: validator,
                 loader: AggregateBuilderDefaults.DefaultLoader<Guid>(),
                 saver: s => Task.FromResult(s.Stream.Commit()));
@@ -184,7 +184,7 @@ public class AggregateTest
 
             var aggregate = new Aggregate<TestState, Guid>(
                 creator: () => new(),
-                applier: (s, _) => Task.FromResult(s),
+                applier: (s, _) => s,
                 validator: validator,
                 loader: AggregateBuilderDefaults.DefaultLoader<Guid>(),
                 saver: s => Task.FromResult(s.Stream.Commit()));
@@ -213,7 +213,7 @@ public class AggregateTest
 
             var aggregate = new Aggregate<TestState, Guid>(
                creator: () => new(),
-               applier: (s, _) => Task.FromResult(s),
+               applier: (s, _) => s,
                validator: AggregateBuilderDefaults.DefaultValidator<TestState>([]),
                loader: loader,
                saver: s => Task.FromResult(s.Stream.Commit()));

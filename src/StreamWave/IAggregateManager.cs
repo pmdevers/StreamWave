@@ -11,7 +11,7 @@ public interface IAggregateManager<TState, TId>
     /// Creates a new aggregate with the initial state.
     /// </summary>
     /// <returns>A task representing the asynchronous operation, with the newly created aggregate as the result.</returns>
-    Task<IAggregate<TState, TId>> Create();
+    IAggregate<TState, TId> Create();
 
     /// <summary>
     /// Loads an existing aggregate based on its identifier.

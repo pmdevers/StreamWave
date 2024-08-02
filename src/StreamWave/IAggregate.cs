@@ -33,17 +33,4 @@ public interface IAggregate<out TState, TId>
     /// <param name="e">The event to apply.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     Task ApplyAsync(object e);
-
-    /// <summary>
-    /// Loads the aggregate's state from the event stream using the specified identifier.
-    /// </summary>
-    /// <param name="id">The identifier of the aggregate to load.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    internal Task LoadAsync(TId id);
-
-    /// <summary>
-    /// Saves the current state of the aggregate, committing any uncommitted events.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    internal Task SaveAsync();
 }

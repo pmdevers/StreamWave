@@ -18,7 +18,7 @@ public delegate TState CreateStateDelegate<out TState, in TId>()
 /// <param name="state">The current state of the aggregate.</param>
 /// <param name="e">The event to be applied.</param>
 /// <returns>A task representing the asynchronous operation, with the updated state as the result.</returns>
-public delegate Task<TState> ApplyEventDelegate<TState>(TState state, object e);
+public delegate TState ApplyEventDelegate<TState>(TState state, object e);
 
 /// <summary>
 /// Delegate for loading the event stream of an aggregate based on its identifier.
@@ -27,7 +27,7 @@ public delegate Task<TState> ApplyEventDelegate<TState>(TState state, object e);
 /// <param name="id">The identifier of the aggregate.</param>
 /// <returns>A task representing the asynchronous operation, with the loaded event stream as the result. 
 /// The result can be null if the event stream does not exist.</returns>
-public delegate Task<IEventStream<TId>?> LoadEventStreamDelegate<TId>(TId id);
+public delegate IEventStream<TId> LoadEventStreamDelegate<TId>(TId id);
 
 /// <summary>
 /// Delegate for saving the aggregate and returning the updated event stream.
@@ -46,12 +46,7 @@ public delegate Task<IEventStream<TId>> SaveAggregateDelegate<TState, TId>(IAggr
 /// <returns>An array of validation messages indicating the validation results.</returns>
 public delegate ValidationMessage[] ValidateStateDelegate<in TState>(TState state);
 
-/// <summary>
-/// Aggregate class representing an aggregate in a domain-driven design context.
-/// </summary>
-/// <typeparam name="TState"></typeparam>
-/// <typeparam name="TId"></typeparam>
-public class Aggregate<TState, TId>
+internal class Aggregate<TState, TId>
     : IAggregate<TState, TId>
     where TState : IAggregateState<TId>
 {
@@ -81,65 +76,36 @@ public class Aggregate<TState, TId>
     
     private IEventStream<TId> _stream;
 
-    /// <summary>
-    /// The current state of the aggregate.
-    /// </summary>
     public TState State { get; private set; }
 
-    /// <summary>
-    /// Validation messages for the current state.
-    /// </summary>
     public ValidationMessage[] Messages => _validator(State);
 
-    /// <summary>
-    /// Indicates whether the aggregate's state is valid.
-    /// </summary>
     public bool IsValid => Messages.Length == 0;
 
-    /// <summary>
-    /// The event stream for external access.
-    /// </summary>
     public IEventStream<TId> Stream => _stream;
 
-    /// <summary>
-    /// Applies an event to the aggregate, updating its state asynchronously.
-    /// </summary>
-    /// <param name="e"></param>
-    /// <returns></returns>
-    public async Task ApplyAsync(object e)
+    public Task ApplyAsync(object e)
     {
-        State = await _applier(State, e);
+        State = _applier(State, e);
         _stream.Append(e);
+        return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Loads the aggregate's state from the event stream based on its ID.
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
-    public async Task LoadAsync(TId id)
+    internal async Task LoadAsync(TId id)
     {
-        _stream = await _loader(id) ?? EventStream.Create(id);
+        _stream = _loader(id) ?? EventStream.Create(id);
         await UpdateState();
     }
 
-    /// <summary>
-    /// Saves the current state of the aggregate, updating the event stream.
-    /// </summary>
-    /// <returns></returns>
-    public async Task SaveAsync()
+    internal async Task SaveAsync()
     {
         _stream = await _saver(this);
         await UpdateState();
     }
 
-    /// <summary>
-    /// Updates the aggregate's state by applying events from the event stream.
-    /// </summary>
-    /// <returns></returns>
     private async Task UpdateState()
     {
-        State = await _stream.Select(x => x.Event).AggregateAsync(_creator(), async (state, e) => await _applier(state, e));
+        State = await _stream.Select(x => x.Event).AggregateAsync(_creator(), (state, e) => _applier(state, e));
         State.Id = _stream.Id;
     }
 }
