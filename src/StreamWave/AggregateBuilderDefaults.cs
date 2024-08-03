@@ -1,4 +1,6 @@
-﻿namespace StreamWave;
+﻿using System.Linq;
+
+namespace StreamWave;
 
 internal static class AggregateBuilderDefaults
 {
@@ -19,7 +21,7 @@ internal static class AggregateBuilderDefaults
        (_) => [];
 
     public static LoadEventStreamDelegate<TId> DefaultLoader<TId>(IEnumerable<object>? events = null)
-        => (_) => Task.FromResult((events ?? []).ToAsyncEnumerable());
+        => (_) => Task.FromResult((events ?? []).Select(x => new EventData(x, x.GetType(), TimeProvider.System.GetUtcNow())).ToAsyncEnumerable());
     
     public static SaveAggregateDelegate<TState, TId> DefaultSaver<TState, TId>()
         => (aggregate) => {

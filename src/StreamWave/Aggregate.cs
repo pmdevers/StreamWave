@@ -1,8 +1,4 @@
-﻿using StreamWave.Extensions;
-using System.IO;
-using System.Runtime.InteropServices;
-
-namespace StreamWave;
+﻿namespace StreamWave;
 
 /// <summary>
 /// Delegate for creating the initial state of an aggregate.
@@ -28,7 +24,7 @@ public delegate TState ApplyEventDelegate<TState>(TState state, object e);
 /// <param name="id">The identifier of the aggregate.</param>
 /// <returns>A task representing the asynchronous operation, with the loaded event stream as the result. 
 /// The result can be null if the event stream does not exist.</returns>
-public delegate Task<IAsyncEnumerable<object>> LoadEventStreamDelegate<in TId>(TId id);
+public delegate Task<IAsyncEnumerable<EventData>> LoadEventStreamDelegate<in TId>(TId id);
 
 /// <summary>
 /// Delegate for saving the aggregate and returning the updated event stream.
@@ -37,7 +33,7 @@ public delegate Task<IAsyncEnumerable<object>> LoadEventStreamDelegate<in TId>(T
 /// <typeparam name="TId">The type of the identifier used for the aggregate.</typeparam>
 /// <param name="aggregate">The aggregate to be saved.</param>
 /// <returns>A task representing the asynchronous operation, with the updated event stream as the result.</returns>
-public delegate Task<IAsyncEnumerable<object>> SaveAggregateDelegate<TState, TId>(IAggregate<TState, TId> aggregate);
+public delegate Task<IAsyncEnumerable<EventData>> SaveAggregateDelegate<TState, TId>(IAggregate<TState, TId> aggregate);
 
 /// <summary>
 /// Delegate for validating the state of an aggregate.
@@ -52,14 +48,16 @@ internal class Aggregate<TState, TId>
 {
     private readonly ApplyEventDelegate<TState> _applier;
     private readonly ValidateStateDelegate<TState> _validator;
-    private readonly IAsyncEnumerable<object> _events;
-    private readonly List<object> _newEvents = [];
+    private readonly IAsyncEnumerable<EventData> _events;
+    private readonly List<EventData> _newEvents = [];
     private int _version;
+    private DateTimeOffset? _createdOn;
+    private DateTimeOffset? _lastModiefiedOn;
 
     internal Aggregate(
         TId id,
         TState state,
-        IAsyncEnumerable<object> events,
+        IAsyncEnumerable<EventData> events,
         ApplyEventDelegate<TState> applier,
         ValidateStateDelegate<TState> validator
     )
@@ -74,6 +72,8 @@ internal class Aggregate<TState, TId>
         var runner = Task.Run(async () => await _events.AggregateAsync(State, (state, e) => 
         {
             _version++;
+            _createdOn ??= e.OccurredOn;
+            _lastModiefiedOn = e.OccurredOn;
             return _applier(state, e);
         }));
 
@@ -92,15 +92,33 @@ internal class Aggregate<TState, TId>
 
     public int ExpectedVersion => _version + _newEvents.Count;
 
+    public DateTimeOffset CreatedOn => _createdOn ?? TimeProvider.System.GetUtcNow();
+    public DateTimeOffset LastModifiedOn => _lastModiefiedOn ?? CreatedOn;
+
     public Task ApplyAsync(object e)
     {
-        _newEvents.Add(e);
+        _newEvents.Add(EventData.Create(e));
         State = _applier(State, e);
         return Task.CompletedTask;
     }
 
-    public IEnumerable<object> GetUncommitedEvents()
+    public IEnumerable<EventData> GetUncommitedEvents()
         => _newEvents;
 }
 
-
+/// <summary>
+/// 
+/// </summary>
+/// <param name="Event"></param>
+/// <param name="EventType"></param>
+/// <param name="OccurredOn"></param>
+public record EventData(object Event, Type EventType, DateTimeOffset OccurredOn)
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="e"></param>
+    /// <returns></returns>
+    public static EventData Create(object e) 
+        => new(e, e.GetType(), TimeProvider.System.GetUtcNow());
+}

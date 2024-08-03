@@ -20,7 +20,7 @@ internal class AggregateManager<TState, TId>(
     public IAggregate<TState, TId> Create(TId id)
     {
         var state = creator(id);
-        var empty = new List<object>().ToAsyncEnumerable();
+        var empty = new List<EventData>().ToAsyncEnumerable();
         return Create(id, state, empty);
     }
 
@@ -43,6 +43,6 @@ internal class AggregateManager<TState, TId>(
         return Create(aggregate.Id, state, stream);
     }
 
-    private Aggregate<TState, TId> Create(TId id, TState state, IAsyncEnumerable<object> stream)
+    private Aggregate<TState, TId> Create(TId id, TState state, IAsyncEnumerable<EventData> stream)
         => new(id, state, stream, applier, validator);
 }

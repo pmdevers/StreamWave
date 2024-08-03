@@ -10,9 +10,6 @@ public class SampleDBContext(DbContextOptions<SampleDBContext> options) : DbCont
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<SampleState>()
-            .HasKey(x => x.Id);
-
-        modelBuilder.ApplyConfiguration(new AggregateTypeConfiguration<SampleState, Guid>());
+        modelBuilder.AddAggregate<SampleState, Guid>(x => x.Id);
     }
 }

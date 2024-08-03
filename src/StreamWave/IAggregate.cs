@@ -28,14 +28,24 @@ public interface IAggregate<out TState, out TId>
     bool IsValid { get; }
 
     /// <summary>
-    /// 
+    /// Gets the version of the event stream, based on the number of committed events. 
     /// </summary>
     int Version { get; }
 
     /// <summary>
-    /// 
+    /// Gets the expected version of the event stream, including uncommitted events. 
     /// </summary>
     int ExpectedVersion { get; }
+
+    /// <summary>
+    /// Gets the timestamp of when the first event was created, if available. 
+    /// </summary>
+    DateTimeOffset CreatedOn { get; }
+
+    /// <summary>
+    /// Gets the timestamp of when the last event was modified, if available. 
+    /// </summary>
+    DateTimeOffset LastModifiedOn { get; }
 
     /// <summary>
     /// Applies a new event to the aggregate, updating its state asynchronously.
@@ -45,8 +55,8 @@ public interface IAggregate<out TState, out TId>
     Task ApplyAsync(object e);
 
     /// <summary>
-    /// 
+    /// Gets the uncommitted events. 
     /// </summary>
-    /// <returns></returns>
-    IEnumerable<object> GetUncommitedEvents();
+    /// <returns>A stream of uncommitted events.</returns>
+    IEnumerable<EventData> GetUncommitedEvents();
 }

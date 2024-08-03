@@ -9,7 +9,7 @@ namespace StreamWave.EntityFramework;
 /// </summary>
 /// <typeparam name="TState">The type of the aggregate state associated with the events.</typeparam>
 /// <typeparam name="TId">The type of the identifier for the event stream.</typeparam>
-public sealed class AggregateTypeConfiguration<TState, TId>
+public sealed class EventstreamConfiguration<TState, TId>
     : IEntityTypeConfiguration<PersistedEvent<TId>>
 {
     /// <summary>

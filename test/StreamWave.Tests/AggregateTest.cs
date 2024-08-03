@@ -12,7 +12,7 @@ public class AggregateTest
             var aggregate = new Aggregate<TestState, Guid>(
                 Guid.NewGuid(),
                 new(),
-                new List<object>().ToAsyncEnumerable(),
+                new List<EventData>().ToAsyncEnumerable(),
                 applier: (s, _) => s,
                 validator: _ => []
              );
@@ -39,7 +39,7 @@ public class AggregateTest
             var aggregate = new Aggregate<TestState, Guid>(
                 Guid.NewGuid(),
                 new(),
-                new List<object>().ToAsyncEnumerable(),
+                new List<EventData>().ToAsyncEnumerable(),
                 applier: applier,
                 validator: AggregateBuilderDefaults.DefaultValidator<TestState>([])
              );
@@ -67,7 +67,7 @@ public class AggregateTest
             var aggregate = new Aggregate<TestState, Guid>(
                Guid.NewGuid(),
                new(),
-               new List<object>().ToAsyncEnumerable(),
+               new List<EventData>().ToAsyncEnumerable(),
                applier: applier,
                validator: AggregateBuilderDefaults.DefaultValidator<TestState>([])
             );
@@ -101,7 +101,7 @@ public class AggregateTest
             var aggregate = new Aggregate<TestState, Guid>(
                 Guid.NewGuid(),
                 new(),
-                new List<object>().ToAsyncEnumerable(),
+                new List<EventData>().ToAsyncEnumerable(),
                 applier: (s, _) => s,
                 validator: validator
             );
@@ -127,7 +127,7 @@ public class AggregateTest
             var aggregate = new Aggregate<TestState, Guid>(
                 Guid.NewGuid(),
                 new(),
-                new List<object>().ToAsyncEnumerable(),
+                new List<EventData>().ToAsyncEnumerable(),
                 applier: (s, _) => s,
                 validator: validator
             );
@@ -150,7 +150,7 @@ public class AggregateTest
             var aggregate = new Aggregate<TestState, Guid>(
                Guid.NewGuid(),
                new(),
-               new List<object>() { new EmptyEvent() }.ToAsyncEnumerable(),
+               new List<EventData>() { EventData.Create(new EmptyEvent()) }.ToAsyncEnumerable(),
                applier: (s, _) => s,
                validator: AggregateBuilderDefaults.DefaultValidator<TestState>([])
             );

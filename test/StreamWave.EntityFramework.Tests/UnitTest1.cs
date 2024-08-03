@@ -93,10 +93,7 @@ public class TestContext(DbContextOptions<TestContext> options) : DbContext(opti
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<TestState>()
-            .HasKey(x => x.Id);
-
-        modelBuilder.ApplyConfiguration(new AggregateTypeConfiguration<TestState, Guid>());
+        modelBuilder.AddAggregate<TestState, Guid>(x => x.Id);
     }
 }
 
