@@ -1,0 +1,9 @@
+@SampleApp_HostAddress = http://localhost:5087
+
+POST {{SampleApp_HostAddress}}/0212b7b1-bc0c-4cbe-905c-bfe834c7358a/Hans/Worst
+Accept: application/json
+
+###
+
+GET {{SampleApp_HostAddress}}/samples
+Accept: application/json

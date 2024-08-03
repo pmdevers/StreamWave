@@ -1,5 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.Extensions.DependencyInjection;
+using System.Linq.Expressions;
+using System.Reflection.Emit;
 
 namespace StreamWave.EntityFramework;
 
@@ -40,5 +43,25 @@ public static class AggregateBuilderExtensions
                     return new Store<TState, TKey>(context, serializer).SaveAsync(a);
                 });
         return builder;
+    }
+
+    /// <summary>
+    /// Adds an aggregate to the model builder with the specified state and key.
+    /// </summary>
+    /// <typeparam name="TState">The type of the state entity.</typeparam>
+    /// <typeparam name="TKey">The type of the key.</typeparam>
+    /// <param name="builder">The model builder to add the aggregate to.</param>
+    /// <param name="hasKey">An expression that specifies the key for the state entity.</param>
+    /// <returns>The modified model builder.</returns>
+    public static EntityTypeBuilder<TState> AddAggregate<TState, TKey>(this ModelBuilder builder, Expression<Func<TState, object?>> hasKey)
+        where TState : class
+    {
+        var entityBuilder = builder.Entity<TState>();
+        
+        entityBuilder.HasKey(hasKey);
+
+        builder.ApplyConfiguration(new EventstreamConfiguration<TState, TKey>());
+
+        return entityBuilder;
     }
 }

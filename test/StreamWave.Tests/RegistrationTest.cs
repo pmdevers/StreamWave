@@ -10,7 +10,8 @@ public class RegistrationTest
     {
         var services = new ServiceCollection();
 
-        services.AddAggregate<TestState, Guid>(() => new TestState {  Id = Guid.NewGuid() })
+        services.AddAggregate<TestState, Guid>(
+            (id) => new TestState {  Id = id })
             .WithApplier<CreatedEvent>((state, e) => {
                 state.Id = e.Id;
                 return state;
@@ -25,10 +26,10 @@ public class RegistrationTest
         var aggregate1 = await manager.LoadAsync(Guid.NewGuid());
 
         aggregate.Should().NotBeNull();
-        aggregate.Stream.Id.Should().Be(aggregate.State.Id);
+        aggregate.Id.Should().Be(aggregate.State.Id);
 
-        aggregate1.State.Id.Should().NotBe(aggregate.State.Id);
-        aggregate1.Stream.Id.Should().NotBe(aggregate.Stream.Id);
+        aggregate1.Id.Should().NotBe(aggregate.State.Id);
+        aggregate1.Id.Should().NotBe(aggregate.Id);
     }
 }
 

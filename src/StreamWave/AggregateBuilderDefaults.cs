@@ -1,4 +1,6 @@
-﻿namespace StreamWave;
+﻿using System.Linq;
+
+namespace StreamWave;
 
 internal static class AggregateBuilderDefaults
 {
@@ -7,16 +9,24 @@ internal static class AggregateBuilderDefaults
             ? applier(state, e)
             : state;
 
+    public static ApplyEventDelegate<TState> DefaultApplier<TState>()
+        => (state, _) => state;
+
     public static ValidateStateDelegate<TState> DefaultValidator<TState>(List<ValidationRule<TState>> rules) =>
         (state) => rules.Where(x => x.Rule(state))
                          .Select(x => new ValidationMessage(x.Message))
                          .ToArray();
 
-    public static LoadEventStreamDelegate<TId> DefaultLoader<TId>(EventRecord[]? events = null)
-        => (streamId) => EventStream.Create(streamId, events);
+    public static ValidateStateDelegate<TState> DefaultValidator<TState>() =>
+       (_) => [];
 
+    public static LoadEventStreamDelegate<TId> DefaultLoader<TId>(IEnumerable<object>? events = null)
+        => (_) => Task.FromResult((events ?? []).Select(x => new EventData(x, x.GetType(), TimeProvider.System.GetUtcNow())).ToAsyncEnumerable());
+    
     public static SaveAggregateDelegate<TState, TId> DefaultSaver<TState, TId>()
-        => (aggregate) => Task.FromResult(EventStream.Create(aggregate.Stream.Id, aggregate.Stream.GetUncommittedEvents()));
+        => (aggregate) => {
+            return Task.FromResult(aggregate.GetUncommitedEvents().ToAsyncEnumerable());
+        };
 }
 
 

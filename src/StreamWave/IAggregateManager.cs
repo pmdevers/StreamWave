@@ -11,7 +11,7 @@ public interface IAggregateManager<TState, TId>
     /// Creates a new aggregate with the initial state.
     /// </summary>
     /// <returns>A task representing the asynchronous operation, with the newly created aggregate as the result.</returns>
-    IAggregate<TState, TId> Create();
+    IAggregate<TState, TId> Create(TId id);
 
     /// <summary>
     /// Loads an existing aggregate based on its identifier.
@@ -25,5 +25,5 @@ public interface IAggregateManager<TState, TId>
     /// </summary>
     /// <param name="aggregate">The aggregate to be saved.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task SaveAsync(IAggregate<TState, TId> aggregate);
+    Task<IAggregate<TState, TId>> SaveAsync(IAggregate<TState, TId> aggregate);
 }
