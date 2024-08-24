@@ -34,7 +34,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StreamWave.EntityFramework.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "example", "example", "{40B48187-5A59-4A8B-AA36-8E9C33278F0A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApp", "examples\SampleApp\SampleApp.csproj", "{E81E8206-445E-4009-ADA6-850370A77951}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleApp", "examples\SampleApp\SampleApp.csproj", "{E81E8206-445E-4009-ADA6-850370A77951}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{84700FAC-774E-4E46-A3E3-3AD45672C938}"
+	ProjectSection(SolutionItems) = preProject
+		docs\getting-started.md = docs\getting-started.md
+		docs\introduction.md = docs\introduction.md
+		docs\toc.yml = docs\toc.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

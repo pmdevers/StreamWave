@@ -38,6 +38,7 @@
     <None Include="..\..\assets\$(PackageIcon)">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
+      <Visible>false</Visible>
     </None>
     <None Include="..\..\README.md">
       <Pack>True</Pack>
