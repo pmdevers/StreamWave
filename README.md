@@ -45,15 +45,30 @@ Here are some basic examples of how to use the library:
 
 ### Setup
 
+Create your domain objects
+
+```csharp
+// domain.cs
+
+public class TestState 
+{
+    public required Guid Id { get; set; }
+    public string? Test { get; set; }
+}
+
+```
+
 Add the aggregate to the service collection
 
 ```csharp
+// program.cs
+
 using StreamWave;
 using StreamWave.EntityFramework;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddAggregate<TestState, Guid>(() => new TestState() {  Id = Guid.NewGuid() })
+builder.Services.AddAggregate<TestState, Guid>((id) => new TestState() {  Id = id })
             .WithEntityFramework<TestContext, TestState, Guid>()
             .WithApplier<TestEvent>((s, e) =>
             {
@@ -67,13 +82,14 @@ builder.Services.AddAggregate<TestState, Guid>(() => new TestState() {  Id = Gui
 
 ```csharp
 
-public Task HandleAsync(IAggregate<TestState, Guid> aggregate, Guid id)
+public async Task HandleAsync(IAggregateManager<TestState, Guid> manager, Guid id)
 {
-    aggregate.LoadAsync(id);
+    var aggregate = manager.LoadAsync(id);
 
     aggregate.Apply(new TestEvent("Update"));
-}
 
+    await manager.SaveAsync(aggregate);
+}
 
 ```
 

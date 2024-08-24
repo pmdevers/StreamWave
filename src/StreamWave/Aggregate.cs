@@ -74,10 +74,11 @@ internal class Aggregate<TState, TId>
             _version++;
             _createdOn ??= e.OccurredOn;
             _lastModiefiedOn = e.OccurredOn;
-            return _applier(state, e);
+            return _applier(state, e.Event);
         }));
-
         runner.Wait();
+
+        
     }
 
     public TId Id { get; private set; }
